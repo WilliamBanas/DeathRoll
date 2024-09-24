@@ -1,0 +1,27 @@
+
+
+services:
+
+  database:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: 'deathroll'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    volumes:
+      - my-db:/var/lib/mysql
+    ports:
+      - 3306:3306
+    expose: 
+      - "3306"
+      
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+
+volumes:
+  my-db:
