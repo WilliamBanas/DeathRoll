@@ -5,6 +5,7 @@ import authRouter from "./routes/auth.router";
 import cookieParser from "cookie-parser";
 import mysql from "mysql2";
 import { DATABASE_URL } from "./secrets";
+import cors from "cors";
 
 const app = express();
 const port = 3000;
@@ -16,9 +17,16 @@ db_con.connect((err) => {
 		console.log("Connected to database");
 	}
 });
+
+const corsOptions = {
+  origin: 'http://localhost:5173', // Remplace par l'URL de ton frontend
+  credentials: true, // Permet d'envoyer les cookies
+};
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors(corsOptions));
 
 app.use("/roles", roleRouter);
 app.use("/users", userRouter);
