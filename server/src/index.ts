@@ -6,6 +6,9 @@ import cookieParser from "cookie-parser";
 import mysql from "mysql2";
 import { DATABASE_URL } from "./secrets";
 import cors from "cors";
+import { createServer } from "http"; 
+import { configureSocket } from "./websockets/socket";
+import roomRouter from "./routes/room.router";
 
 const app = express();
 const port = 3000;
@@ -31,11 +34,19 @@ app.use(cors(corsOptions));
 app.use("/roles", roleRouter);
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
+app.use("/rooms", roomRouter);
 
 app.get("/", (req, res) => {
 	res.send("Server is currently running");
 });
 
-app.listen(port, () => {
-	console.log(`Server running at: ${port}`);
+// Créer un serveur HTTP avec express
+const server = createServer(app);
+
+// Configuration des sockets
+configureSocket(server);
+
+// Lancer le serveur sur le port 3000
+server.listen(port, () => {
+  console.log(`Server running at: ${port}`);
 });
