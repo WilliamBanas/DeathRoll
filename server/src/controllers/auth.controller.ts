@@ -6,13 +6,6 @@ import { JWT_SECRET } from "../secrets";
 
 const prisma = new PrismaClient();
 
-interface UserPayload {
-  id: number;
-  email: string;
-  nickname: string;
-  roleId: number;
-}
-
 export const signup = async (req: Request, res: Response) => {
 	try {
 		const userData = req.body;
@@ -78,45 +71,11 @@ export const login = async (req: Request, res: Response) => {
 		);
 
     console.log('Token créé:', token);
-
-		res.cookie("token", token, {
-			httpOnly: true,
-			sameSite: "strict",
-			maxAge: 3600 * 1000,
-		});
     
-    return res.status(200).json({ message: "Login successful" });
+    return res.status(200).json({ message: "Login successful", token });
 
 	} catch (error) {
 		console.log(error);
 		res.status(500).json({ error: "Internal server error" });
 	}
-};
-
-export const check = async (req: Request, res: Response) => {
-  const token = req.cookies.token;
-  const options: jwt.VerifyOptions = {
-    algorithms: ['HS256'],
-  };
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET, options) as UserPayload;
-      return res.status(200).json({ authenticated: true, user: decoded });
-    } catch (err) {
-      return res.status(401).json({ authenticated: false });
-    }
-  } else {
-    return res.status(401).json({ authenticated: false });
-  }
-}
-
-export const logout = async (req: Request, res: Response) => {
-  console.log("Logout request received");
-  try {
-    res.clearCookie("token"); // Supprime le cookie contenant le token
-    return res.status(200).json({ message: "Logout successful" });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
 };

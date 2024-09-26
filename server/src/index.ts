@@ -8,7 +8,6 @@ import { DATABASE_URL } from "./secrets";
 import cors from "cors";
 import { createServer } from "http"; 
 import { configureSocket } from "./websockets/socket";
-import roomRouter from "./routes/room.router";
 
 const app = express();
 const port = 3000;
@@ -34,7 +33,6 @@ app.use(cors(corsOptions));
 app.use("/roles", roleRouter);
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
-app.use("/rooms", roomRouter);
 
 app.get("/", (req, res) => {
 	res.send("Server is currently running");

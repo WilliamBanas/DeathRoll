@@ -20,16 +20,12 @@ model Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique @db.VarChar(255)
-  password  String   @db.VarChar(60)
-  nickname  String   @unique @db.VarChar(50)
-  role      Role     @relation(fields: [roleId], references: [id])
-  roleId    Int      @default(2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Room {
-  id String @id @default(uuid())
+  id        Int       @id @default(autoincrement())
+  email     String    @unique @db.VarChar(255)
+  password  String    @db.VarChar(60)
+  nickname  String    @unique @db.VarChar(50)
+  role      Role      @relation(fields: [roleId], references: [id])
+  roleId    Int       @default(2)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
