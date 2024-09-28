@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 const API_URL = "http://localhost:3000";
@@ -10,18 +10,25 @@ export const useSocket = () => {
 };
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const token = sessionStorage.getItem("token"); // Get the token from session storage
-  const socket = io(`${API_URL}`, {
-    auth: {
-      token, // Send the token in the authentication payload
-    },
-  });
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    return () => {
-      socket.disconnect(); // Clean up the socket connection when the component unmounts
-    };
-  }, [socket]);
+    
+      const newSocketInstance = io(`${API_URL}`, {
+        withCredentials: true,
+      });
+     
+      setSocket(newSocketInstance);
+      newSocketInstance.on("connect", () => {
+        console.log(`Socket connected: ${newSocketInstance.id}`);
+      });
+
+      newSocketInstance.on("disconnect", () => {
+        console.log(`Socket disconnected: ${newSocketInstance.id}`);
+      });
+
+    
+  }, []);
 
   return <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>;
 };

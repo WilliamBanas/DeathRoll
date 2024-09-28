@@ -1,104 +1,90 @@
 import React, { useEffect, useState } from "react";
+import { useSocket } from "../contexts/socket"; 
 import { useNavigate } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
-import { useSocket } from "../contexts/socket";
 
 const Home: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [roomId, setRoomId] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>(""); // For error handling
   const socket = useSocket();
   const navigate = useNavigate();
-
-  const checkAuth = () => {
-    const token = sessionStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-    } else {
-      setIsAuthenticated(true);
-      setLoading(false);
-    }
-  };
-
-  const createRoom = () => {
-    const id = uuidv4();
+  const [lobbyId, setLobbyId] = useState('');
+  const [nickname, setNickname] = useState('');
+  
+  useEffect(() => {
     if (socket) {
-      console.log(`Creating room with ID: ${id}`);
-      
-      // Handle room creation and joining locally
-      socket.once("roomCreated", (createdRoomId: string) => {
-        console.log(`Room created: ${createdRoomId}`);
-        socket.emit("joinRoom", createdRoomId);
-      });
-  
-      // Handle room errors locally
-      socket.once("roomError", (error: { error: string }) => {
-        setErrorMessage(error.error);
-        console.error(`Error creating room: ${error.error}`);
-      });
-  
-      // Emit the createRoom event
-      socket.emit("createRoom", id);
-      console.log("Emitted createRoom event");
+      console.log(`Socket initialized: ${socket.id}`);
+    } else {
+      console.error("Socket is not initialized");
     }
-  };
-
-  const joinRoom = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (roomId.trim() !== "") {
-      if (socket) {
-        console.log(`Joining room: ${roomId}`);
-  
-        // Handle successful room join locally
-        socket.once("joinedRoom", (joinedRoomId: string) => {
-          console.log(`Successfully joined room: ${joinedRoomId}`);
-          navigate(`/room/${joinedRoomId}`);
-        });
-  
-        // Handle room errors locally
-        socket.once("roomError", (error: { error: string }) => {
-          setErrorMessage(error.error);
-          console.error(`Error joining room: ${error.error}`);
-        });
-  
-        // Emit the joinRoom event
-        socket.emit("joinRoom", roomId);
-      }
-    }
-  };
+  }, [socket]);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (socket) {
+      socket.on("lobbyCreated", ({ lobbyId, player }) => {
+        console.log(`Lobby created with ID: ${lobbyId}`);
+        console.log(`Player data:`, player);
 
-  const logout = () => {
-    // Clear the token from session storage
-    sessionStorage.removeItem("token");
-    setIsAuthenticated(false); // Update authenticated state
-    navigate("/login"); // Redirect to login page
+        navigate(`/lobby/${lobbyId}`);
+      });
+
+      socket.on("lobbyJoined", ({ lobbyId, player }) => {
+        console.log(`Lobby joined with ID: ${lobbyId}`);
+        console.log(`Player data:`, player);
+
+        navigate(`/lobby/${lobbyId}`);
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("lobbyCreated");
+        socket.off("lobbyJoined");
+      }
+    };
+  }, [socket, navigate]);
+
+  const createLobby = () => {
+    if (nickname && socket) {
+      console.log("Emitting createLobby event with nickname:", nickname);
+      socket.emit("createLobby", nickname);
+    } else {
+      alert(`Nickname or socket is missing! Nickname: ${nickname}, Socket: ${socket}`);
+      console.log("Current Nickname:", nickname);
+      console.log("Current Socket:", socket);
+    }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const joinLobby = () => {
+    if (nickname && lobbyId && socket) {
+      console.log("Emitting createLobby event with nickname and roomId:", nickname, lobbyId);
+      socket.emit("joinLobby", { nickname, lobbyId });
+    } else {
+      alert(`Nickname or socket or lobbyId is missing! Nickname: ${nickname}, Socket: ${socket}, LobbyId: ${lobbyId}`);
+      console.log("Current Nickname:", nickname);
+      console.log("Current Socket:", socket);
+      console.log("Current LobbyId:", lobbyId);
+    }
+  }
 
   return (
-    <div>
+    <div className="flex flex-col items-start text-lg">
       <h1 className="text-3xl font-bold underline">Welcome to the Room App!</h1>
       <div>
-        <button onClick={createRoom}>Create Room</button>
+        <button disabled={nickname === '' ? true : false} onClick={createLobby} >Host</button>
       </div>
-      <form onSubmit={joinRoom}>
-        <input
-          type="text"
-          placeholder="Enter Room ID"
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-        />
-        <button type="submit">Join Room</button>
-      </form>
-      {errorMessage && <div className="text-red-500">{errorMessage}</div>}{" "}
-      {/* Display errors here */}
-      <button onClick={logout}>Logout</button>
+      <input
+        type="text"
+        placeholder="Enter Room ID"
+        value={lobbyId}
+        onChange={(e) => {setLobbyId(e.target.value), console.log(e.target.value)}}
+        disabled={nickname === '' ? true : false}
+      />
+      <button disabled={nickname === '' ? true : false} onClick={joinLobby} >Join</button>
+      <input
+        type="text" 
+        placeholder="Enter Nickname"
+        value={nickname}
+        onChange={(e) => {setNickname(e.target.value), console.log(e.target.value)}} 
+      />
+
     </div>
   );
 };
