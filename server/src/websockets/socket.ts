@@ -154,91 +154,131 @@ export const configureSocket = (server: HTTPServer) => {
 				if (players && players.length > 0) {
 					const currentPlayer = players[game.currentTurn];
 					let randomNum: number;
-					let rangeStart: number;
-					let rangeEnd: number;
+					let lastGeneratedNum: number | null = null;
 
-					// Determine the range based on whether it's the first turn
+					// First turn logic
 					if (game.isFirstTurn) {
-						rangeStart = 1;
-						rangeEnd = 100; // First turn range
 						randomNum = Math.floor(Math.random() * 100) + 1;
-						game.isFirstTurn = false; // Set to false after the first turn
+						game.isFirstTurn = false;
 					} else {
-						// Check if there's a previous player to determine the range
-						if (game.currentTurn === 0) {
-							// If it's the first player's second turn
-							const previousPlayerSocketId =
-								players[players.length - 1].socketId; // Get the last player
-							const previousPlayerNum =
-								game.playerNumbers[previousPlayerSocketId];
+						// Use the last generated number as the new range limit
+						const previousPlayerSocketId =
+							players[
+								game.currentTurn === 0
+									? players.length - 1
+									: game.currentTurn - 1
+							].socketId;
+						lastGeneratedNum = game.playerNumbers[previousPlayerSocketId];
 
-							rangeStart = 1;
-							rangeEnd = previousPlayerNum; // Range based on the last player's number
-							randomNum =
-								Math.floor(Math.random() * (rangeEnd - rangeStart + 1)) +
-								rangeStart;
-						} else {
-							const previousPlayerSocketId =
-								players[game.currentTurn - 1]?.socketId;
-							const previousPlayerNum =
-								game.playerNumbers[previousPlayerSocketId];
-
-							if (previousPlayerNum !== undefined) {
-								rangeStart = 1;
-								rangeEnd = previousPlayerNum; // This should not reset to 100
-								randomNum =
-									Math.floor(Math.random() * (rangeEnd - rangeStart + 1)) +
-									rangeStart;
-							} else {
-								console.error(
-									"No previous player found to determine range for subsequent turns."
-								);
-								return;
-							}
-						}
+						randomNum = Math.floor(Math.random() * lastGeneratedNum) + 1;
 					}
 
-					// Log the current player's information
 					console.log(
-						`Player: ${currentPlayer.nickname}, Range Start: ${rangeStart}, Range End: ${rangeEnd}, Random Number: ${randomNum}`
+						`Player: ${currentPlayer.nickname}, Last Generated Number: ${
+							lastGeneratedNum !== null ? lastGeneratedNum : "N/A"
+						}, Random Number: ${randomNum}`
 					);
 
-					// Store player's number
+					// Save the generated number for the current player
 					game.playerNumbers[currentPlayer.socketId] = randomNum;
 
-					// Check if the game is over (i.e., random number is 1)
+					// If the player generates 1, they lose
 					if (randomNum === 1) {
 						game.isActive = false;
 						setTimeout(() => {
 							io.to(lobbyId).emit("gameOver", {
 								loser: currentPlayer.nickname,
 							});
-						}, 5000); // 5-second delay
-						console.log(`Player ${currentPlayer.nickname} has lost!`);
+						}, 5000);
 						io.to(lobbyId).emit("loserAnnouncement", currentPlayer.nickname);
 						return;
 					}
 
-					// Move to the next player's turn
+					// Pass the turn to the next player
 					game.currentTurn = (game.currentTurn + 1) % players.length;
 
-					// Emit the updated turn, random number, and range to all players
+					// Emit the turn change to all players, including the generated number
 					io.to(lobbyId).emit("turnChanged", {
 						currentTurn: game.currentTurn,
-						randomNum,
+						randomNum, // Include the generated number
+						lastGeneratedNum:
+							lastGeneratedNum !== null ? lastGeneratedNum : undefined,
 						socketId: currentPlayer.socketId,
-						rangeStart,
-						rangeEnd,
 					});
-				} else {
-					console.error("No players found in the lobby.");
+
+					// Emit the generated number so all players can display it
+					io.to(lobbyId).emit("currentRoll", { randomNum });
 				}
+			}
+		});
+
+		socket.on("stopGame", (lobbyId) => {
+			const game = games[lobbyId];
+			if (game && game.isActive) {
+				game.isActive = false;
+				io.to(lobbyId).emit("gameOver", {
+					message: "The host has stopped the game.",
+				});
+				console.log(`Game in lobby ${lobbyId} has been stopped by the host.`);
 			}
 		});
 
 		socket.on("disconnect", () => {
 			console.log(`User disconnected: connection id: ${socket.id}`);
-			socket.broadcast.emit("playerLeft", socket.id);
+
+			// Find the lobby the user was in
+			const lobby = lobbies.find((lobby) =>
+				lobby.players.some((player) => player.socketId === socket.id)
+			);
+
+			if (lobby) {
+				const playerLeaving = lobby.players.find(
+					(player) => player.socketId === socket.id
+				);
+
+				if (playerLeaving) {
+					// Remove player from lobby
+					lobby.players = lobby.players.filter(
+						(player) => player.socketId !== socket.id
+					);
+
+					// If the player was the host, reassign host to the next player
+					if (playerLeaving.host) {
+						if (lobby.players.length > 0) {
+							const newHost = lobby.players[0];
+							newHost.host = true;
+							io.to(lobby.lobbyId).emit("hostChanged", {
+								newHost: newHost.nickname,
+							});
+						} else {
+							// If there are no players left, remove the lobby
+							const lobbyIndex = lobbies.indexOf(lobby);
+							if (lobbyIndex !== -1) {
+								lobbies.splice(lobbyIndex, 1);
+								console.log(`Lobby with ID: ${lobby.lobbyId} removed.`);
+							}
+							return; // Exit early since the lobby is removed
+						}
+					}
+
+					// Check if the game is active
+					const game = games[lobby.lobbyId];
+					if (game && game.isActive) {
+						// If there are no players left after the player leaves, stop the game
+						if (lobby.players.length === 0) {
+							game.isActive = false;
+							io.to(lobby.lobbyId).emit("gameOver", {
+								message: "All players have left. The game is over.",
+							});
+							console.log(`Game in lobby ${lobby.lobbyId} has ended.`);
+						}
+					}
+
+					// Notify other players that someone left
+					socket.broadcast.to(lobby.lobbyId).emit("playerLeft", socket.id);
+					console.log(`Player left the lobby: ${socket.id}`);
+				}
+			}
 		});
 	});
 };
