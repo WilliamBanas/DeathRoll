@@ -41,7 +41,6 @@ const GameUi: React.FC<GameUiProps> = ({
 	stopGame, // Nouvelle prop
 }) => {
 	const game = lobbyId ? games[lobbyId] : null;
-	const [rangeEnd, setRangeEnd] = useState<number>(100); // Default rangeEnd is 100
 	const [currentRoll, setCurrentRoll] = useState<number | null>(null); // State to track current roll
 	const isGameOver = game ? !game.isActive : false;
 	const currentPlayer =
@@ -53,30 +52,21 @@ const GameUi: React.FC<GameUiProps> = ({
 	const isHost = lobbyData?.players.find(player => player.socketId === socket?.id)?.host;
 
 	useEffect(() => {
-		console.log("Game state:", { isGameOver, loser, lobbyData, game });
-	}, [isGameOver, loser, lobbyData, game]);
-
-	useEffect(() => {
 		if (socket) {
+			const handleGameStarted = ({ startingNumber }: { startingNumber: number }) => {
+				console.log(`Game started with starting number: ${startingNumber}`);
+			};
+
 			const handleTurnChanged = ({
 				currentTurn,
 				randomNum,
-				socketId,
-				lastGeneratedNum,
 			}: {
 				currentTurn: number;
 				randomNum: number;
 				socketId: string;
-				lastGeneratedNum: number;
 			}) => {
-				console.log(
-					`Received turnChanged: currentTurn = ${currentTurn}, lastGeneratedNum = ${lastGeneratedNum}`
-				);
-				setRangeEnd(lastGeneratedNum); // Update rangeEnd with last generated number
-			};
-
-			const handleCurrentRoll = ({ randomNum }: { randomNum: number }) => {
-				setCurrentRoll(randomNum); // Update current roll for all players
+				console.log(`Turn changed: currentTurn = ${currentTurn}, randomNum = ${randomNum}`);
+				setCurrentRoll(randomNum);
 			};
 
 			const handlePlayerReachedOne = ({ playerName, loserSocketId }: { playerName: string, loserSocketId: string }) => {
@@ -87,13 +77,13 @@ const GameUi: React.FC<GameUiProps> = ({
 				}
 			};
 
+			socket.on("gameStarted", handleGameStarted);
 			socket.on("turnChanged", handleTurnChanged);
-			socket.on("currentRoll", handleCurrentRoll); // Listen to the current roll
 			socket.on("playerReachedOne", handlePlayerReachedOne);
 
 			return () => {
+				socket.off("gameStarted", handleGameStarted);
 				socket.off("turnChanged", handleTurnChanged);
-				socket.off("currentRoll", handleCurrentRoll);
 				socket.off("playerReachedOne", handlePlayerReachedOne);
 			};
 		}

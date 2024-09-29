@@ -23,6 +23,7 @@ interface Game {
 	isActive: boolean;
 	playerNumbers: { [socketId: string]: number };
 	isFirstTurn: boolean;
+	startingNumber: number; // Ajoutez le nombre de départ ici
 }
 
 const Lobby: React.FC = () => {
@@ -36,6 +37,7 @@ const Lobby: React.FC = () => {
 	const [playerNumbers, setPlayerNumbers] = useState<{
 		[socketId: string]: number;
 	}>({});
+	const [startingNumber, setStartingNumber] = useState<number>(100);
 
 	const copyLobbyUrl = () => {
 		const url = `${window.location.origin}/lobby/${lobbyId}`;
@@ -170,7 +172,7 @@ const Lobby: React.FC = () => {
 
 	const startGame = () => {
 		if (socket && lobbyId) {
-			socket.emit("startGame", lobbyId);
+			socket.emit("startGame", { lobbyId, startingNumber });
 			setGames((prevGames) => ({
 				...prevGames,
 				[lobbyId]: {
@@ -178,6 +180,7 @@ const Lobby: React.FC = () => {
 					isActive: true,
 					isFirstTurn: true,
 					playerNumbers: {},
+					startingNumber, // Ajoutez le nombre de départ ici
 				} as Game,
 			}));
 		}
@@ -223,7 +226,7 @@ const Lobby: React.FC = () => {
 					onClick={copyLobbyUrl}
 					className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-2 rounded text-sm"
 				>
-					Copy URL
+					Copy
 				</button>
 			</div>
 			<h2>Players:</h2>
@@ -239,13 +242,23 @@ const Lobby: React.FC = () => {
 			{lobbyId && !games[lobbyId]?.isActive && (
 				<>
 					{isCurrentPlayerHost() ? (
-						<button 
-							onClick={startGame} 
-							disabled={!canStartGame}
-							className={`${!canStartGame ? 'opacity-50 cursor-not-allowed' : ''} bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4`}
-						>
-							Start Game
-						</button>
+						<>
+							<input
+								type="number"
+								value={startingNumber}
+								onChange={(e) => setStartingNumber(Number(e.target.value))}
+								min="1"
+								className="mb-2 p-2 border rounded"
+								placeholder="Starting number"
+							/>
+							<button 
+								onClick={startGame} 
+								disabled={!canStartGame}
+								className={`${!canStartGame ? 'opacity-50 cursor-not-allowed' : ''} bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4`}
+							>
+								Start Game
+							</button>
+						</>
 					) : (
 						<div className="text-gray-500 mt-4">
 							Waiting for host to start game...

@@ -21,6 +21,7 @@ interface Game {
 	currentTurn: number;
 	playerNumbers: Record<string, number>;
 	isFirstTurn: boolean;
+	startingNumber: number; // Ajoutez le nombre de départ ici
 }
 
 const lobbies: Lobby[] = [];
@@ -136,7 +137,7 @@ export const configureSocket = (server: HTTPServer) => {
 			}
 		});
 
-		socket.on("startGame", (lobbyId) => {
+		socket.on("startGame", ({ lobbyId, startingNumber }) => {
 			const lobby = lobbies.find((lobby) => lobby.lobbyId === lobbyId);
 			if (lobby) {
 				lobby.players.sort(() => Math.random() - 0.5);
@@ -145,10 +146,11 @@ export const configureSocket = (server: HTTPServer) => {
 					currentTurn: 0,
 					isActive: true,
 					playerNumbers: {},
-					isFirstTurn: true, // Initialize isFirstTurn here
+					isFirstTurn: true,
+					startingNumber, // Ajoutez le nombre de départ ici
 				};
 
-				io.to(lobbyId).emit("gameStarted", { currentTurn: 0 });
+				io.to(lobbyId).emit("gameStarted", { currentTurn: 0, startingNumber });
 			}
 		});
 
@@ -166,7 +168,7 @@ export const configureSocket = (server: HTTPServer) => {
 
 					// First turn logic
 					if (game.isFirstTurn) {
-						randomNum = Math.floor(Math.random() * 100) + 1;
+						randomNum = Math.floor(Math.random() * game.startingNumber) + 1;
 						game.isFirstTurn = false;
 					} else {
 						// Use the last generated number as the new range limit
