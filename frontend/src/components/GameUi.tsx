@@ -38,7 +38,6 @@ const GameUi: React.FC<GameUiProps> = ({
   socket,
   handlePlayerAction,
   games,
-  playerNumbers,
 }) => {
   const game = lobbyId ? games[lobbyId] : null;
   const [loserMessage, setLoserMessage] = useState<string | null>(null);
@@ -53,7 +52,6 @@ const GameUi: React.FC<GameUiProps> = ({
     if (socket) {
       const handleTurnChanged = ({
         currentTurn,
-        randomNum,
         rangeStart,
         rangeEnd,
       }: {
@@ -68,9 +66,8 @@ const GameUi: React.FC<GameUiProps> = ({
         setRangeStart(rangeStart);
         setRangeEnd(rangeEnd);
       };
-
-      const handleGameOver = ({ loser }: { loser: string }) => {
-        // Set the appropriate messages based on the player's status
+  
+      const handleLoserAnnouncement = (loser: string) => {
         if (socket?.id === currentPlayer?.socketId) {
           setLoserMessage("You lost!");
         } else {
@@ -78,12 +75,19 @@ const GameUi: React.FC<GameUiProps> = ({
         }
       };
 
+      const handleGameOver = () => {
+        // Handle the game over event, e.g., reset game state or show a message
+        setLoserMessage("Game Over! Resetting the game...");
+      };
+  
       socket.on("turnChanged", handleTurnChanged);
-      socket.on("gameOver", handleGameOver);
-
+      socket.on("loserAnnouncement", handleLoserAnnouncement);
+      socket.on("gameOver", handleGameOver); // Provide a listener function here
+  
       return () => {
         socket.off("turnChanged", handleTurnChanged);
-        socket.off("gameOver", handleGameOver);
+        socket.off("loserAnnouncement", handleLoserAnnouncement);
+        socket.off("gameOver", handleGameOver); // Clean up the listener
       };
     }
   }, [socket, currentPlayer]);
