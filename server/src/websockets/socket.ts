@@ -143,54 +143,63 @@ export const configureSocket = (server: HTTPServer) => {
 		});
 
 		socket.on("playerAction", (lobbyId) => {
-			const game = games[lobbyId];
-			if (game && game.isActive) {
-				const players = lobbies.find(
-					(lobby) => lobby.lobbyId === lobbyId
-				)?.players;
-				if (players) {
-					const currentPlayer = players[game.currentTurn];
-					let randomNum: number;
-
-					// First player's random number
-					if (game.currentTurn === 0) {
-						randomNum = Math.floor(Math.random() * 100) + 1;
-					} else {
-						// Next player random number based on previous player's number
-						const previousPlayerNum =
-							game.playerNumbers[players[game.currentTurn - 1].socketId];
-						randomNum = Math.floor(Math.random() * previousPlayerNum) + 1;
-					}
-
-					// Store player's number
-					game.playerNumbers[currentPlayer.socketId] = randomNum;
-
-					// Check if the game is over (i.e., random number is 1)
-					if (randomNum === 1) {
-						game.isActive = false;
-						// Emit a gameOver event after a delay
-						setTimeout(() => {
-							io.to(lobbyId).emit("gameOver", {
-								loser: currentPlayer.nickname,
-							});
-						}, 5000); // 5-second delay
-						// Emit the losing message immediately
-						io.to(lobbyId).emit("loserAnnouncement", currentPlayer.nickname);
-						return;
-					}
-
-					// Move to the next player's turn
-					game.currentTurn = (game.currentTurn + 1) % players.length;
-
-					// Emit the updated turn and random number to all players
-					io.to(lobbyId).emit("turnChanged", {
-						currentTurn: game.currentTurn,
-						randomNum,
-						socketId: currentPlayer.socketId, // Include socketId to identify the player
-					});
-				}
-			}
-		});
+      const game = games[lobbyId];
+      if (game && game.isActive) {
+        const players = lobbies.find(
+          (lobby) => lobby.lobbyId === lobbyId
+        )?.players;
+        if (players) {
+          const currentPlayer = players[game.currentTurn];
+          let randomNum: number;
+          let rangeStart: number;
+          let rangeEnd: number;
+    
+          // First player's random number
+          if (game.currentTurn === 0) {
+            rangeStart = 1;
+            rangeEnd = 100;
+            randomNum = Math.floor(Math.random() * 100) + 1;
+          } else {
+            // Next player random number based on previous player's number
+            const previousPlayerNum =
+              game.playerNumbers[players[game.currentTurn - 1].socketId];
+            rangeStart = 1;
+            rangeEnd = previousPlayerNum;
+            randomNum = Math.floor(Math.random() * previousPlayerNum) + 1;
+          }
+    
+          // Store player's number
+          game.playerNumbers[currentPlayer.socketId] = randomNum;
+    
+          // Check if the game is over (i.e., random number is 1)
+          if (randomNum === 1) {
+            game.isActive = false;
+            // Emit a gameOver event after a delay
+            setTimeout(() => {
+              io.to(lobbyId).emit("gameOver", {
+                loser: currentPlayer.nickname,
+              });
+            }, 5000); // 5-second delay
+            // Emit the losing message immediately
+            console.log(`Player ${currentPlayer.nickname} has lost!`);
+            io.to(lobbyId).emit("loserAnnouncement", currentPlayer.nickname);
+            return;
+          }
+    
+          // Move to the next player's turn
+          game.currentTurn = (game.currentTurn + 1) % players.length;
+    
+          // Emit the updated turn, random number, and range to all players
+          io.to(lobbyId).emit("turnChanged", {
+            currentTurn: game.currentTurn,
+            randomNum,
+            socketId: currentPlayer.socketId, // Include socketId to identify the player
+            rangeStart,
+            rangeEnd,
+          });
+        }
+      }
+    });
 
 		socket.on("disconnect", () => {
 			console.log(`User disconnected: connection id: ${socket.id}`);
