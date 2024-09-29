@@ -75,6 +75,14 @@ export const configureSocket = (server: HTTPServer) => {
 		socket.on("joinLobby", ({ nickname, lobbyId }) => {
 			const lobby = lobbies.find((lobby) => lobby.lobbyId === lobbyId);
 			if (lobby) {
+				// Check if the nickname is already in use in this lobby
+				const isNicknameInUse = lobby.players.some(player => player.nickname === nickname);
+				
+				if (isNicknameInUse) {
+					socket.emit("lobbyError", "Nickname already in use in this lobby.");
+					return;
+				}
+
 				const player: Player = {
 					host: false,
 					nickname,
@@ -185,12 +193,16 @@ export const configureSocket = (server: HTTPServer) => {
 					// If the player generates 1, they lose
 					if (randomNum === 1) {
 						game.isActive = false;
+						currentPlayer.loser = true; // Mark the current player as loser
+						io.to(lobbyId).emit("playerReachedOne", {
+							playerName: currentPlayer.nickname,
+							loserSocketId: currentPlayer.socketId
+						});
 						setTimeout(() => {
 							io.to(lobbyId).emit("gameOver", {
 								loser: currentPlayer.nickname,
 							});
-						}, 5000);
-						io.to(lobbyId).emit("loserAnnouncement", currentPlayer.nickname);
+						}, 4000);
 						return;
 					}
 
@@ -213,6 +225,7 @@ export const configureSocket = (server: HTTPServer) => {
 		});
 
 		socket.on("stopGame", (lobbyId) => {
+			console.log(`Received stopGame event for lobby ${lobbyId}`); // Ajoutez ce log
 			const game = games[lobbyId];
 			if (game && game.isActive) {
 				game.isActive = false;
@@ -220,6 +233,8 @@ export const configureSocket = (server: HTTPServer) => {
 					message: "The host has stopped the game.",
 				});
 				console.log(`Game in lobby ${lobbyId} has been stopped by the host.`);
+			} else {
+				console.log(`No active game found for lobby ${lobbyId}`);
 			}
 		});
 

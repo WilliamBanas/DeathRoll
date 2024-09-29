@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSocket } from "../contexts/socket";
 import GameUi from "../components/GameUi";
 
@@ -36,6 +36,12 @@ const Lobby: React.FC = () => {
 	const [playerNumbers, setPlayerNumbers] = useState<{
 		[socketId: string]: number;
 	}>({});
+
+	const copyLobbyUrl = () => {
+		const url = `${window.location.origin}/lobby/${lobbyId}`;
+		navigator.clipboard.writeText(url);
+		// Optionally, you can add a state to show a temporary "Copied!" message
+	};
 
 	useEffect(() => {
 		if (socket && lobbyId) {
@@ -190,12 +196,36 @@ const Lobby: React.FC = () => {
 		return currentPlayer?.host;
 	};
 
+	const canStartGame = lobbyData && lobbyData.players.length > 1;
+
+	const stopGame = () => {
+		if (socket && lobbyId) {
+			console.log("Emitting stopGame event"); // Ajoutez ce log
+			socket.emit("stopGame", lobbyId);
+		}
+	};
+
 	if (loading) return <div>Loading room data...</div>;
-	if (error) return <div className="text-red-500">{error}</div>;
+	if (error) return (
+		<div className="flex flex-col items-center">
+			<div className="text-red-500 mb-4">{error}</div>
+			<Link to="/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+				Return to Home
+			</Link>
+		</div>
+	);
 
 	return (
 		<main className="flex flex-col items-center text-xl">
-			<h1>Lobby ID: {lobbyId}</h1>
+			<div className="flex items-center space-x-2">
+				<h1>Lobby ID: {lobbyId}</h1>
+				<button
+					onClick={copyLobbyUrl}
+					className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-2 rounded text-sm"
+				>
+					Copy URL
+				</button>
+			</div>
 			<h2>Players:</h2>
 			<ul>
 				{lobbyData?.players.map((player: Player) => (
@@ -209,9 +239,15 @@ const Lobby: React.FC = () => {
 			{lobbyId && !games[lobbyId]?.isActive && (
 				<>
 					{isCurrentPlayerHost() ? (
-						<button onClick={startGame}>Start Game</button>
+						<button 
+							onClick={startGame} 
+							disabled={!canStartGame}
+							className={`${!canStartGame ? 'opacity-50 cursor-not-allowed' : ''} bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4`}
+						>
+							Start Game
+						</button>
 					) : (
-						<div className="text-gray-500">
+						<div className="text-gray-500 mt-4">
 							Waiting for host to start game...
 						</div>
 					)}
@@ -227,6 +263,7 @@ const Lobby: React.FC = () => {
 					lobbyId={lobbyId}
 					socket={socket}
 					games={games}
+					stopGame={stopGame}
 				/>
 			) : null}
 		</main>
