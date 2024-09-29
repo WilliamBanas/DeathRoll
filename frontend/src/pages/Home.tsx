@@ -74,7 +74,7 @@ const Home: React.FC = () => {
         type="text"
         placeholder="Enter Room ID"
         value={lobbyId}
-        onChange={(e) => {setLobbyId(e.target.value), console.log(e.target.value)}}
+        onChange={(e) => setLobbyId(e.target.value)}
         disabled={nickname === '' ? true : false}
       />
       <button disabled={nickname === '' ? true : false} onClick={joinLobby} >Join</button>
@@ -82,7 +82,7 @@ const Home: React.FC = () => {
         type="text" 
         placeholder="Enter Nickname"
         value={nickname}
-        onChange={(e) => {setNickname(e.target.value), console.log(e.target.value)}} 
+        onChange={(e) => setNickname(e.target.value)} 
       />
 
     </div>
