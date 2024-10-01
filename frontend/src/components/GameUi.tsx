@@ -38,10 +38,10 @@ const GameUi: React.FC<GameUiProps> = ({
 	socket,
 	handlePlayerAction,
 	games,
-	stopGame, // Nouvelle prop
+	stopGame,
 }) => {
 	const game = lobbyId ? games[lobbyId] : null;
-	const [currentRoll, setCurrentRoll] = useState<number | null>(null); // State to track current roll
+	const [currentRoll, setCurrentRoll] = useState<number | null>(null);
 	const isGameOver = game ? !game.isActive : false;
 	const currentPlayer =
 		game && lobbyData ? lobbyData.players[game.currentTurn] : null;
@@ -77,14 +77,21 @@ const GameUi: React.FC<GameUiProps> = ({
 				}
 			};
 
+			const handleCurrentRoll = ({ randomNum }: { randomNum: number }) => {
+				console.log(`Current roll: ${randomNum}`);
+				setCurrentRoll(randomNum);
+			};
+
 			socket.on("gameStarted", handleGameStarted);
 			socket.on("turnChanged", handleTurnChanged);
 			socket.on("playerReachedOne", handlePlayerReachedOne);
+			socket.on("currentRoll", handleCurrentRoll);
 
 			return () => {
 				socket.off("gameStarted", handleGameStarted);
 				socket.off("turnChanged", handleTurnChanged);
 				socket.off("playerReachedOne", handlePlayerReachedOne);
+				socket.off("currentRoll", handleCurrentRoll);
 			};
 		}
 	}, [socket]);
@@ -98,7 +105,7 @@ const GameUi: React.FC<GameUiProps> = ({
 	}
 
 	const handleStopGame = () => {
-		console.log("Stop game button clicked"); // Ajoutez ce log
+		console.log("Stop game button clicked");
 		stopGame();
 	};
 
@@ -106,22 +113,15 @@ const GameUi: React.FC<GameUiProps> = ({
 		<div>
 			{!isGameOver ? (
 				<>
-					{isMyTurn ? (
+					<div>
+						<h3>{isMyTurn ? "It's your turn!" : `${currentPlayer?.nickname}'s turn`}</h3>
 						<div>
-							<h3>It's your turn!</h3>
-							<div>
-								<h4>Current roll: {currentRoll !== null ? currentRoll : 'N/A'}</h4>
-							</div>
+							<h4>Current roll: {currentRoll !== null ? currentRoll : 'N/A'}</h4>
+						</div>
+						{isMyTurn && (
 							<button onClick={handlePlayerAction}>Generate Random Number</button>
-						</div>
-					) : (
-						<div>
-							<h3>{currentPlayer?.nickname}'s turn</h3>
-							<div>
-								<h4>Current roll: {currentRoll !== null ? currentRoll : 'N/A'}</h4>
-							</div>
-						</div>
-					)}
+						)}
+					</div>
 					{isHost && (
 						<button onClick={handleStopGame} style={{ marginTop: '20px', color: 'red' }}>
 							Return to Lobby
@@ -133,15 +133,15 @@ const GameUi: React.FC<GameUiProps> = ({
 					<h3>Game Over</h3>
 					{loser ? (
 						loser.socketId === socket?.id ? (
-              <div>
-                <p>You lost!</p>
-                <p>Redirecting to lobby...</p>
-              </div>
+							<div>
+								<p>You lost!</p>
+								<p>Redirecting to lobby...</p>
+							</div>
 						) : (
-              <div>
-                <p>{loser.nickname} lost the game.</p>
-                <p>Redirecting to lobby...</p>
-              </div>
+							<div>
+								<p>{loser.nickname} lost the game.</p>
+								<p>Redirecting to lobby...</p>
+							</div>
 						)
 					) : (
 						<p>The game has ended.</p>

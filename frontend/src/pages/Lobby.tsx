@@ -39,10 +39,11 @@ const Lobby: React.FC = () => {
 	}>({});
 	const [startingNumber, setStartingNumber] = useState<number>(100);
 
-	const copyLobbyUrl = () => {
-		const url = `${window.location.origin}/lobby/${lobbyId}`;
-		navigator.clipboard.writeText(url);
-		// Optionally, you can add a state to show a temporary "Copied!" message
+	const copyLobbyId = () => {
+		if (lobbyId) {
+			navigator.clipboard.writeText(lobbyId);
+			// Optionally, you can add a state to show a temporary "Copied!" message
+		}
 	};
 
 	useEffect(() => {
@@ -223,10 +224,10 @@ const Lobby: React.FC = () => {
 			<div className="flex items-center space-x-2">
 				<h1>Lobby ID: {lobbyId}</h1>
 				<button
-					onClick={copyLobbyUrl}
+					onClick={copyLobbyId}
 					className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-2 rounded text-sm"
 				>
-					Copy
+					Copy ID
 				</button>
 			</div>
 			<h2>Players:</h2>
