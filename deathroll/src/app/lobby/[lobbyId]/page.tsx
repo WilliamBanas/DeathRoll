@@ -6,7 +6,7 @@ import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, Star, User } from "lucide-react";
+import { Copy, LogOut, Star, User } from "lucide-react";
 
 interface Player {
 	host: boolean;
@@ -247,7 +247,7 @@ const Lobby: React.FC = () => {
 										className="mb-2 p-2 border rounded"
 										placeholder="Starting number"
 									/>
-									<Button onClick={startGame} disabled={!canStartGame}>
+									<Button className="rounded" onClick={startGame} disabled={!canStartGame}>
 										Start Game
 									</Button>
 								</>
@@ -257,7 +257,9 @@ const Lobby: React.FC = () => {
 								</div>
 							)}
 
-							<Button onClick={leaveLobby}>Leave Room</Button>
+							<Button variant="outline" className="rounded" onClick={leaveLobby}>
+              <LogOut className="w-4" />Leave 
+							</Button>
 						</>
 					)}
 				</div>

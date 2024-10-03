@@ -103,9 +103,9 @@ const Home: React.FC = () => {
 						/>
 						<Button
 							disabled={nickname !== "" && lobbyId !== "" ? false : true}
-							className="rounded"
+							className="rounded text-white bg-secondary :hover:bg-secondary/50"
 							onClick={joinLobby}
-              variant="outline"
+              variant="ghost"
 						>
 							JOIN LOBBY
 						</Button>
