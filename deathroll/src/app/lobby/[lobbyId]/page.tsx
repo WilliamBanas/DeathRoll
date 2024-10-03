@@ -225,13 +225,27 @@ const Lobby: React.FC = () => {
 		);
 
 	return (
-		<main className="min-h-dvh flex flex-col items-center bg-background">
-			<div className="flex justify-center gap-6 w-2/3">
-				<div className="bg-card rounded px-6 py-3 h-fit w-96 flex flex-col gap-3">
+		<main className="min-h-dvh bg-background px-6">
+			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
+				<div className="border rounded px-6 py-4 w-full">
+					<h2 className="text-xl w-full text-center mb-6">Players</h2>
+					<ul className="flex flex-col gap-2 h-32 overflow-y-auto">
+						{lobbyData?.players.map((player: Player) => (
+							<li className="flex items-center gap-3" key={player.socketId}>
+								<p className="text-2xl">{player.nickname}</p>
+								{player.socketId === socket?.id ? (
+									<User className="w-5" />
+								) : null}
+								{player.host ? <Star className="w-5" /> : null}
+							</li>
+						))}
+					</ul>
+				</div>
+				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
 					<div className="flex items-center justify-between">
 						<p className="text-2xl">{lobbyId}</p>
-						<Button variant="ghost" className="rounded" onClick={copyLobbyId}>
-							<Copy className="w-4" />
+						<Button variant="ghost" className="rounded hover:bg-card" onClick={copyLobbyId}>
+							<Copy className="w-5" />
 						</Button>
 					</div>
 
@@ -247,33 +261,30 @@ const Lobby: React.FC = () => {
 										className="mb-2 p-2 border rounded"
 										placeholder="Starting number"
 									/>
-									<Button className="rounded" onClick={startGame} disabled={!canStartGame}>
+									<Button
+										className="rounded"
+										onClick={startGame}
+										disabled={!canStartGame}
+									>
 										Start Game
 									</Button>
 								</>
 							) : (
-								<div className="text-gray-500 mt-4">
+								<div className="text-gray-500 text-lg">
 									Waiting for host to start game...
 								</div>
 							)}
 
-							<Button variant="outline" className="rounded" onClick={leaveLobby}>
-              <LogOut className="w-4" />Leave 
+							<Button
+								variant="outline"
+								className="rounded flex gap-2"
+								onClick={leaveLobby}
+							>
+								<LogOut className="w-4" />
+								<p>Leave</p>
 							</Button>
 						</>
 					)}
-				</div>
-				<div className="border rounded px-6 py-3 h-fit w-96 flex flex-col gap-3">
-					<h2>Players:</h2>
-					<ul>
-						{lobbyData?.players.map((player: Player) => (
-							<li className="flex items-center gap-2" key={player.socketId}>
-								<p>{player.nickname}</p>
-								{player.socketId === socket?.id ? <User className="w-4" /> : null}
-								{player.host ? <Star className="w-4" /> : null}
-							</li>
-						))}
-					</ul>
 				</div>
 
 				{lobbyId && games[lobbyId]?.isActive ? (

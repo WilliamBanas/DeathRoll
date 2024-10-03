@@ -74,10 +74,9 @@ const Home: React.FC = () => {
 	};
 
 	return (
-		<main className="min-h-dvh flex flex-col items-center bg-background">
-			<h1>Welcome to DEATHROLL!</h1>
-			<div className="flex justify-center gap-6 w-2/3">
-				<div className="bg-card rounded px-6 py-3 h-fit w-96 flex flex-col gap-3">
+		<main className="min-h-dvh bg-background px-6">
+			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
+				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-3">
 					{error && <p>{error}</p>}
 					<Input
 						type="text"
@@ -91,7 +90,7 @@ const Home: React.FC = () => {
 						className="rounded"
 						onClick={createLobby}
 					>
-						CREATE LOBBY
+						Create lobby
 					</Button>
 					<div className="flex gap-3">
 						<Input
@@ -107,11 +106,11 @@ const Home: React.FC = () => {
 							onClick={joinLobby}
               variant="ghost"
 						>
-							JOIN LOBBY
+							Join lobby
 						</Button>
 					</div>
 				</div>
-				<div className="bg-card rounded px-6 w-96 h-fit bg-gradient bg-cover !">
+				<div className="bg-card rounded w-full px-6 h-fit">
 					<Accordion type="single" collapsible>
 						<AccordionItem value="item-1">
 							<AccordionTrigger>What's the rules ?</AccordionTrigger>
