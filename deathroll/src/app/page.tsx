@@ -77,7 +77,7 @@ const Home: React.FC = () => {
 		<main className="min-h-dvh flex flex-col items-center bg-background">
 			<h1>Welcome to DEATHROLL!</h1>
 			<div className="flex justify-center gap-6 w-2/3">
-				<div className="bg-card rounded p-6 h-fit w-96 flex flex-col gap-3">
+				<div className="bg-card rounded px-6 py-3 h-fit w-96 flex flex-col gap-3">
 					{error && <p>{error}</p>}
 					<Input
 						type="text"
