@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
+import { Button } from "@/components/ui/button";
 
 interface Player {
 	host: boolean;
@@ -29,7 +30,7 @@ interface GameUiProps {
 	lobbyId: string | undefined;
 	socket: Socket | null;
 	games: { [lobbyId: string]: Game };
-	stopGame: () => void; // Nouvelle prop pour arrêter le jeu
+	stopGame: () => void; 
 }
 
 const GameUi: React.FC<GameUiProps> = ({
@@ -119,13 +120,13 @@ const GameUi: React.FC<GameUiProps> = ({
 							<h4>Current roll: {currentRoll !== null ? currentRoll : 'N/A'}</h4>
 						</div>
 						{isMyTurn && (
-							<button onClick={handlePlayerAction}>Generate Random Number</button>
+							<Button onClick={handlePlayerAction}>Generate Random Number</Button>
 						)}
 					</div>
 					{isHost && (
-						<button onClick={handleStopGame} style={{ marginTop: '20px', color: 'red' }}>
+						<Button onClick={handleStopGame} style={{ marginTop: '20px', color: 'red' }}>
 							Return to Lobby
-						</button>
+						</Button>
 					)}
 				</>
 			) : (

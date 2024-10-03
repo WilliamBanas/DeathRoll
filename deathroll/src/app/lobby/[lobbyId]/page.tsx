@@ -4,6 +4,9 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Copy, Star, User } from "lucide-react";
 
 interface Player {
 	host: boolean;
@@ -45,7 +48,6 @@ const Lobby: React.FC = () => {
 	const copyLobbyId = () => {
 		if (lobbyId) {
 			navigator.clipboard.writeText(lobbyId);
-			// Optionally, you can add a state to show a temporary "Copied!" message
 		}
 	};
 
@@ -88,7 +90,6 @@ const Lobby: React.FC = () => {
 							(player) => player.socketId !== socketId
 						);
 
-						// Vérifier si le joueur qui est parti était l'hôte et assigner un nouvel hôte si nécessaire
 						if (
 							prevLobby.players.some(
 								(player) => player.socketId === socketId && player.host
@@ -213,76 +214,77 @@ const Lobby: React.FC = () => {
 	};
 
 	if (loading) return <div>Loading room data...</div>;
-	if (error) return (
-		<div className="flex flex-col items-center">
-			<div className="text-red-500 mb-4">{error}</div>
-			<Link href="/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-				Return to Home
-			</Link>
-		</div>
-	);
+	if (error)
+		return (
+			<div className="flex flex-col items-center">
+				<div className="text-red-500 mb-4">{error}</div>
+				<Link href="/">
+					<Button>Return to Home</Button>
+				</Link>
+			</div>
+		);
 
 	return (
-		<main className="flex flex-col items-center text-xl">
-			<div className="flex items-center space-x-2">
-				<h1>Lobby ID: {lobbyId}</h1>
-				<button
-					onClick={copyLobbyId}
-					className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-2 rounded text-sm"
-				>
-					Copy ID
-				</button>
-			</div>
-			<h2>Players:</h2>
-			<ul>
-				{lobbyData?.players.map((player: Player) => (
-					<li className="text-blue-500" key={player.socketId}>
-						{player.nickname} {player.socketId === socket?.id ? " (You)" : ""}{" "}
-						{player.host ? "(Host)" : ""}
-					</li>
-				))}
-			</ul>
+		<main className="min-h-dvh flex flex-col items-center bg-background">
+			<div className="flex justify-center gap-6 w-2/3">
+				<div className="bg-card rounded p-6 h-fit w-96 flex flex-col gap-3">
+					<div className="flex items-center justify-between">
+						<p className="text-2xl">{lobbyId}</p>
+						<Button variant="ghost" className="rounded" onClick={copyLobbyId}>
+							<Copy className="w-4" />
+						</Button>
+					</div>
 
-			{lobbyId && !games[lobbyId]?.isActive && (
-				<>
-					{isCurrentPlayerHost() ? (
+					{lobbyId && !games[lobbyId]?.isActive && (
 						<>
-							<input
-								type="number"
-								value={startingNumber}
-								onChange={(e) => setStartingNumber(Number(e.target.value))}
-								min="1"
-								className="mb-2 p-2 border rounded"
-								placeholder="Starting number"
-							/>
-							<button 
-								onClick={startGame} 
-								disabled={!canStartGame}
-								className={`${!canStartGame ? 'opacity-50 cursor-not-allowed' : ''} bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4`}
-							>
-								Start Game
-							</button>
+							{isCurrentPlayerHost() ? (
+								<>
+									<Input
+										type="number"
+										value={startingNumber}
+										onChange={(e) => setStartingNumber(Number(e.target.value))}
+										min="1"
+										className="mb-2 p-2 border rounded"
+										placeholder="Starting number"
+									/>
+									<Button onClick={startGame} disabled={!canStartGame}>
+										Start Game
+									</Button>
+								</>
+							) : (
+								<div className="text-gray-500 mt-4">
+									Waiting for host to start game...
+								</div>
+							)}
+
+							<Button onClick={leaveLobby}>Leave Room</Button>
 						</>
-					) : (
-						<div className="text-gray-500 mt-4">
-							Waiting for host to start game...
-						</div>
 					)}
+				</div>
+				<div className="bg-card rounded p-6 h-fit w-96 flex flex-col gap-3">
+					<h2>Players:</h2>
+					<ul>
+						{lobbyData?.players.map((player: Player) => (
+							<li className="flex items-center gap-2" key={player.socketId}>
+								<p>{player.nickname}</p>
+								{player.socketId === socket?.id ? <User className="w-4" /> : null}
+								{player.host ? <Star className="w-4" /> : null}
+							</li>
+						))}
+					</ul>
+				</div>
 
-					<button onClick={leaveLobby}>Leave Room</button>
-				</>
-			)}
-
-			{lobbyId && games[lobbyId]?.isActive ? (
-				<GameUi
-					lobbyData={lobbyData}
-					handlePlayerAction={handlePlayerAction}
-					lobbyId={lobbyId}
-					socket={socket}
-					games={games}
-					stopGame={stopGame}
-				/>
-			) : null}
+				{lobbyId && games[lobbyId]?.isActive ? (
+					<GameUi
+						lobbyData={lobbyData}
+						handlePlayerAction={handlePlayerAction}
+						lobbyId={lobbyId}
+						socket={socket}
+						games={games}
+						stopGame={stopGame}
+					/>
+				) : null}
+			</div>
 		</main>
 	);
 };
