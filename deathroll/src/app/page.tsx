@@ -115,7 +115,7 @@ const Home: React.FC = () => {
 				<div className="bg-card border rounded w-full px-6 h-fit">
 					<Accordion type="single" collapsible>
 						<AccordionItem value="item-1">
-							<AccordionTrigger className="text-lg">What's the rules ?</AccordionTrigger>
+							<AccordionTrigger className="text-lg">What are the rules ?</AccordionTrigger>
 							<AccordionContent className="text-lg">
 								Each player rolls a random number between two values. The first
 								player to play has to roll a number between 1 and a value set by
