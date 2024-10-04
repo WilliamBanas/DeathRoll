@@ -251,7 +251,7 @@ const Lobby: React.FC = () => {
 						<p className="text-2xl">{lobbyId}</p>
 						<Button
 							variant="ghost"
-							className="rounded hover:bg-transparent w-fit"
+							className="rounded hover:bg-transparent w-fit p-0"
 							onClick={copyLobbyId}
 						>
 							<Copy className="w-5" />
