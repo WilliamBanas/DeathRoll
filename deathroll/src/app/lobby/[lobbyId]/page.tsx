@@ -6,7 +6,7 @@ import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Copy, Crown, LogOut } from "lucide-react";
+import { CircleHelp, Copy, Crown, LogOut } from "lucide-react";
 import {
 	Select,
 	SelectContent,
@@ -247,7 +247,7 @@ const Lobby: React.FC = () => {
 		<main className="bg-background px-6">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
 				<div className="flex flex-col gap-4 w-full">
-					<div className="bg-card rounded px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
+					<div className="bg-primary/10 rounded px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 						<p className="text-2xl">{lobbyId}</p>
 						<Button
 							variant="ghost"
@@ -260,57 +260,58 @@ const Lobby: React.FC = () => {
 					<div className="rounded p-3 w-full bg-gradient">
 						<div className="bg-background rounded border-2">
 							<h2 className="text-xl w-full text-center p-2">Players</h2>
-							<ul className="grid grid-cols-2 gap-x-4 gap-y-2 p-4">
-								{lobbyData?.players
-									.slice(0, 10)
-									.map((player: Player, index: number) => (
-										<li
-											className="flex items-center gap-2"
-											key={player.socketId}
-											style={{ gridRow: `${(index % 5) + 1} / span 1` }}
-										>
-											<div className="flex items-center gap-2 overflow-hidden">
-												{player.host ? (
-													<Crown
-														className={`w-4 h-4 flex-shrink-0 ${
-															player.socketId === socket?.id
-																? "fill-[#FFD700] stroke-[#FFD700]"
-																: "fill-[#FFD700] stroke-[#FFD700]"
-														}`}
-														fill="currentColor"
-														stroke="currentColor"
-													/>
+							<ul className="h-fit grid grid-cols-2 gap-x-4 gap-y-2 p-4">
+								{Array.from({ length: 10 }).map((_, index) => {
+									const player = lobbyData?.players[index];
+									return (
+										<li className="flex items-center gap-2 h-10" key={index}>
+											<div className="w-full h-full bg-card rounded-sm flex items-center gap-2 px-2 overflow-hidden">
+												{player ? (
+													<>
+														{player.host && (
+															<Crown
+																className={`w-4 h-4 flex-shrink-0 ${
+																	player.socketId === socket?.id
+																		? "fill-[#FFD700] stroke-[#FFD700]"
+																		: "fill-[#FFD700] stroke-[#FFD700]"
+																}`}
+																fill="currentColor"
+																stroke="currentColor"
+															/>
+														)}
+														<p
+															className={`text-lg font-bold truncate ${
+																player.socketId === socket?.id
+																	? "text-primary"
+																	: ""
+															}`}
+														>
+															{player.nickname}
+														</p>
+													</>
 												) : null}
-												<p
-													className={`text-lg font-bold truncate ${
-														player.socketId === socket?.id ? "text-primary" : ""
-													}`}
-												>
-													{player.nickname}
-												</p>
 											</div>
 										</li>
-									))}
+									);
+								})}
 							</ul>
 						</div>
 					</div>
 				</div>
-				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
+				<div className="bg-card border rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
 					{lobbyId && !games[lobbyId]?.isActive && (
 						<>
 							{isCurrentPlayerHost() ? (
 								<>
-									<div className="flex items-center gap-3">
-										<Label className="text-md">
-											Select a value to begin with :
-										</Label>
+									<div className="flex items-center justify-between gap-4">
+										<Label className="text-md w-fit">Default value :</Label>
 										<Select
 											value={startingNumber.toString()}
 											onValueChange={(value) =>
 												setStartingNumber(Number(value))
 											}
 										>
-											<SelectTrigger className="w-full rounded">
+											<SelectTrigger className="w-32 rounded ">
 												<SelectValue placeholder="Select starting number" />
 											</SelectTrigger>
 											<SelectContent className="bg-background rounded">

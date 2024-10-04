@@ -78,7 +78,7 @@ const Home: React.FC = () => {
 	return (
 		<main className="bg-background px-6">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
-				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-3">
+				<div className="bg-card border rounded px-6 py-4 w-full h-fit flex flex-col gap-3">
 					{error && <p>{error}</p>}
 					<Input
 						type="text"
@@ -112,7 +112,7 @@ const Home: React.FC = () => {
 						</Button>
 					</div>
 				</div>
-				<div className="bg-card rounded w-full px-6 h-fit">
+				<div className="bg-card border rounded w-full px-6 h-fit">
 					<Accordion type="single" collapsible>
 						<AccordionItem value="item-1">
 							<AccordionTrigger className="text-lg">What's the rules ?</AccordionTrigger>
