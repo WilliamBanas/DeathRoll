@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Copy, Crown, LogOut } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 } from "@/components/ui/select";
 
 interface Player {
@@ -51,12 +51,24 @@ const Lobby: React.FC = () => {
 		[socketId: string]: number;
 	}>({});
 	const [startingNumber, setStartingNumber] = useState<number>(100);
+	const [dots, setDots] = useState("");
 
 	const copyLobbyId = () => {
 		if (lobbyId) {
 			navigator.clipboard.writeText(lobbyId);
 		}
 	};
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setDots((prevDots) => {
+				if (prevDots.length >= 3) return "";
+				return prevDots + ".";
+			});
+		}, 500); // Change de point toutes les 500ms
+
+		return () => clearInterval(interval);
+	}, []);
 
 	useEffect(() => {
 		if (socket && lobbyId) {
@@ -232,10 +244,10 @@ const Lobby: React.FC = () => {
 		);
 
 	return (
-		<main className="min-h-dvh bg-background px-6">
+		<main className="bg-background px-6">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
-				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
-					<div className="flex items-center justify-between">
+				<div className="flex flex-col gap-4 w-full">
+					<div className="bg-card rounded px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 						<p className="text-2xl">{lobbyId}</p>
 						<Button
 							variant="ghost"
@@ -245,63 +257,86 @@ const Lobby: React.FC = () => {
 							<Copy className="w-5" />
 						</Button>
 					</div>
-				</div>
-				<div className="border border-primary rounded px-6 py-4 w-full">
-					<h2 className="text-xl w-full text-center mb-6">Players</h2>
-					<ul className="grid grid-cols-2 gap-4">
-						{lobbyData?.players.map((player: Player) => (
-							<li className="flex items-center gap-2" key={player.socketId}>
-								<div className="flex items-center gap-2 overflow-hidden">
-									{player.host ? (
-										<Crown
-											className={`w-4 flex-shrink-0 ${
-												player.socketId === socket?.id ? "text-primary" : ""
-											}`}
-										/>
-									) : null}
-									<p
-										className={`text-lg font-bold truncate ${
-											player.socketId === socket?.id ? "gradient-text" : ""
-										}`}
-									>
-										{player.nickname}
-									</p>
-								</div>
-							</li>
-						))}
-					</ul>
+					<div className="rounded p-3 w-full bg-gradient">
+						<div className="bg-background rounded border-2">
+							<h2 className="text-xl w-full text-center p-2">Players</h2>
+							<ul className="grid grid-cols-2 gap-x-4 gap-y-2 p-4">
+								{lobbyData?.players
+									.slice(0, 10)
+									.map((player: Player, index: number) => (
+										<li
+											className="flex items-center gap-2"
+											key={player.socketId}
+											style={{ gridRow: `${(index % 5) + 1} / span 1` }}
+										>
+											<div className="flex items-center gap-2 overflow-hidden">
+												{player.host ? (
+													<Crown
+														className={`w-4 h-4 flex-shrink-0 ${
+															player.socketId === socket?.id
+																? "fill-[#FFD700] stroke-[#FFD700]"
+																: "fill-[#FFD700] stroke-[#FFD700]"
+														}`}
+														fill="currentColor"
+														stroke="currentColor"
+													/>
+												) : null}
+												<p
+													className={`text-lg font-bold truncate ${
+														player.socketId === socket?.id ? "text-primary" : ""
+													}`}
+												>
+													{player.nickname}
+												</p>
+											</div>
+										</li>
+									))}
+							</ul>
+						</div>
+					</div>
 				</div>
 				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
 					{lobbyId && !games[lobbyId]?.isActive && (
 						<>
 							{isCurrentPlayerHost() ? (
 								<>
-									<Select
-										value={startingNumber.toString()}
-										onValueChange={(value) => setStartingNumber(Number(value))}
-									>
-										<SelectTrigger className="w-full">
-											<SelectValue placeholder="Select starting number" />
-										</SelectTrigger>
-										<SelectContent className="bg-background">
-											{Array.from({ length: 20 }, (_, i) => (i + 1) * 50).map((value) => (
-												<SelectItem key={value} value={value.toString()}>
-													{value}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<Button
-										className="rounded"
-										onClick={startGame}
-										disabled={!canStartGame}
-									>
-										Start Game
-									</Button>
+									<div className="flex items-center gap-3">
+										<Label className="text-md">
+											Select a value to begin with :
+										</Label>
+										<Select
+											value={startingNumber.toString()}
+											onValueChange={(value) =>
+												setStartingNumber(Number(value))
+											}
+										>
+											<SelectTrigger className="w-full rounded">
+												<SelectValue placeholder="Select starting number" />
+											</SelectTrigger>
+											<SelectContent className="bg-background rounded">
+												{Array.from({ length: 20 }, (_, i) => (i + 1) * 50).map(
+													(value) => (
+														<SelectItem key={value} value={value.toString()}>
+															{value}
+														</SelectItem>
+													)
+												)}
+											</SelectContent>
+										</Select>
+									</div>
+									<div>
+										<Button
+											className="rounded w-full"
+											onClick={startGame}
+											disabled={!canStartGame}
+										>
+											Start Game
+										</Button>
+									</div>
 								</>
 							) : (
-								<div className="text-gray-500 text-lg">
-									Waiting for host to start game...
+								<div className="text-gray-500 text-xl">
+									Waiting for host to start game{dots}
 								</div>
 							)}
 

@@ -10,6 +10,8 @@ import {
 	AccordionTrigger,
 	AccordionContent,
 } from "@/components/ui/accordion";
+import styles from './Home.module.css'; // Assurez-vous de créer ce fichier CSS module
+
 const Home: React.FC = () => {
 	const socket = useSocket();
 	const router = useRouter();
@@ -74,7 +76,7 @@ const Home: React.FC = () => {
 	};
 
 	return (
-		<main className="min-h-dvh bg-background px-6">
+		<main className="bg-background px-6">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
 				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-3">
 					{error && <p>{error}</p>}
@@ -86,8 +88,8 @@ const Home: React.FC = () => {
 						className="rounded"
 					/>
 					<Button
-						disabled={nickname !== "" ? false : true}
-						className="rounded"
+						disabled={nickname === ""}
+						className={`rounded`}
 						onClick={createLobby}
 					>
 						Create lobby
@@ -101,10 +103,10 @@ const Home: React.FC = () => {
 							className="rounded"
 						/>
 						<Button
-							disabled={nickname !== "" && lobbyId !== "" ? false : true}
-							className="rounded text-white bg-secondary :hover:bg-secondary/50"
+							disabled={nickname === "" || lobbyId === ""}
+							className={`rounded text-white bg-secondary hover:bg-secondary/50`}
 							onClick={joinLobby}
-              variant="ghost"
+							variant="ghost"
 						>
 							Join lobby
 						</Button>
@@ -113,8 +115,8 @@ const Home: React.FC = () => {
 				<div className="bg-card rounded w-full px-6 h-fit">
 					<Accordion type="single" collapsible>
 						<AccordionItem value="item-1">
-							<AccordionTrigger>What's the rules ?</AccordionTrigger>
-							<AccordionContent>
+							<AccordionTrigger className="text-lg">What's the rules ?</AccordionTrigger>
+							<AccordionContent className="text-lg">
 								Each player rolls a random number between two values. The first
 								player to play has to roll a number between 1 and a value set by
 								the game host. The next player has to roll a number between 1

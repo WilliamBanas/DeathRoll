@@ -16,46 +16,50 @@ body {
 		background-clip: text;
 		color: transparent;
 	}
+	/* Ajoutez cette définition */
+	.bg-gradient {
+		background-image: var(--gradient);
+	}
 }
 
 @layer base {
-  :root {
-    /* Name: custom color palette
+	:root {
+		/* Name: custom color palette
        Author: Ilias Ism
        URL: https://gradient.page */
 
-    /* CSS: .bg-gradient { background: var(--gradient) } */
-    --gradient: linear-gradient(to top left,#B6CEE8,#F578DC);
+		/* CSS: .bg-gradient { background: var(--gradient) } */
+		--gradient: linear-gradient(to top left, #3494e6, #ec6ead);
 
-    --background: 224 33.800000000000004% 6.48%;
-    --foreground: 224 5.2% 99.05%;
+		--background: 221 50.7% 4.4%;
+		--foreground: 221 7.800000000000001% 97.75%;
 
-    --muted: 224 26% 24.3%;
-    --muted-foreground: 224 5.2% 58.1%;
+		--muted: 221 39% 16.5%;
+		--muted-foreground: 221 7.800000000000001% 55.5%;
 
-    --popover: 224 54.6% 10.530000000000001%;
-    --popover-foreground: 224 5.2% 99.05%;
+		--popover: 221 49.4% 7.15%;
+		--popover-foreground: 221 7.800000000000001% 97.75%;
 
-    --card: 224 54.6% 10.530000000000001%;
-    --card-foreground: 224 5.2% 99.05%;
+		--card: 221 49.4% 7.15%;
+		--card-foreground: 221 7.800000000000001% 97.75%;
 
-    --border: 224 26% 24.3%;
-    --input: 224 26% 24.3%;
+		--border: 221 39% 16.5%;
+		--input: 221 39% 16.5%;
 
-    --primary: 224 52% 81%;
-    --primary-foreground: 224 5.2% 8.100000000000001%;
+		--primary: 221 78% 55%;
+		--primary-foreground: 221 7.800000000000001% 5.5%;
 
-    --secondary: 224 26% 24.3%;
-    --secondary-foreground: 224 5.2% 99.05%;
+		--secondary: 221 39% 16.5%;
+		--secondary-foreground: 221 7.800000000000001% 97.75%;
 
-    --accent: 224 26% 24.3%;
-    --accent-foreground: 224 5.2% 99.05%;
+		--accent: 221 39% 16.5%;
+		--accent-foreground: 221 7.800000000000001% 97.75%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 224 5.2% 99.05%;
+		--destructive: 0 62.8% 30.6%;
+		--destructive-foreground: 221 7.800000000000001% 97.75%;
 
-    --ring: 224 52% 81%;
-  }
+		--ring: 221 78% 55%;
+	}
 }
 
 @layer base {
