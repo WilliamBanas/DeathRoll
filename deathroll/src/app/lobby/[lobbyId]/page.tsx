@@ -6,7 +6,14 @@ import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, LogOut, Star, User } from "lucide-react";
+import { Copy, Crown, LogOut } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Player {
 	host: boolean;
@@ -28,7 +35,7 @@ interface Game {
 	isActive: boolean;
 	playerNumbers: { [socketId: string]: number };
 	isFirstTurn: boolean;
-	startingNumber: number; // Ajoutez le nombre de départ ici
+	startingNumber: number;
 }
 
 const Lobby: React.FC = () => {
@@ -227,40 +234,63 @@ const Lobby: React.FC = () => {
 	return (
 		<main className="min-h-dvh bg-background px-6">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
-				<div className="border rounded px-6 py-4 w-full">
+				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
+					<div className="flex items-center justify-between">
+						<p className="text-2xl">{lobbyId}</p>
+						<Button
+							variant="ghost"
+							className="rounded hover:bg-card"
+							onClick={copyLobbyId}
+						>
+							<Copy className="w-5" />
+						</Button>
+					</div>
+				</div>
+				<div className="border border-primary rounded px-6 py-4 w-full">
 					<h2 className="text-xl w-full text-center mb-6">Players</h2>
-					<ul className="flex flex-col gap-2 h-32 overflow-y-auto">
+					<ul className="grid grid-cols-2 gap-4">
 						{lobbyData?.players.map((player: Player) => (
-							<li className="flex items-center gap-3" key={player.socketId}>
-								<p className="text-2xl">{player.nickname}</p>
-								{player.socketId === socket?.id ? (
-									<User className="w-5" />
-								) : null}
-								{player.host ? <Star className="w-5" /> : null}
+							<li className="flex items-center gap-2" key={player.socketId}>
+								<div className="flex items-center gap-2 overflow-hidden">
+									{player.host ? (
+										<Crown
+											className={`w-4 flex-shrink-0 ${
+												player.socketId === socket?.id ? "text-primary" : ""
+											}`}
+										/>
+									) : null}
+									<p
+										className={`text-lg font-bold truncate ${
+											player.socketId === socket?.id ? "gradient-text" : ""
+										}`}
+									>
+										{player.nickname}
+									</p>
+								</div>
 							</li>
 						))}
 					</ul>
 				</div>
 				<div className="bg-card rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
-					<div className="flex items-center justify-between">
-						<p className="text-2xl">{lobbyId}</p>
-						<Button variant="ghost" className="rounded hover:bg-card" onClick={copyLobbyId}>
-							<Copy className="w-5" />
-						</Button>
-					</div>
-
 					{lobbyId && !games[lobbyId]?.isActive && (
 						<>
 							{isCurrentPlayerHost() ? (
 								<>
-									<Input
-										type="number"
-										value={startingNumber}
-										onChange={(e) => setStartingNumber(Number(e.target.value))}
-										min="1"
-										className="mb-2 p-2 border rounded"
-										placeholder="Starting number"
-									/>
+									<Select
+										value={startingNumber.toString()}
+										onValueChange={(value) => setStartingNumber(Number(value))}
+									>
+										<SelectTrigger className="w-full">
+											<SelectValue placeholder="Select starting number" />
+										</SelectTrigger>
+										<SelectContent className="bg-background">
+											{Array.from({ length: 20 }, (_, i) => (i + 1) * 50).map((value) => (
+												<SelectItem key={value} value={value.toString()}>
+													{value}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 									<Button
 										className="rounded"
 										onClick={startGame}
