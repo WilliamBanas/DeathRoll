@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import { Button } from "@/components/ui/button";
+import { Dices } from "lucide-react";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Player {
 	host: boolean;
@@ -30,7 +38,8 @@ interface GameUiProps {
 	lobbyId: string | undefined;
 	socket: Socket | null;
 	games: { [lobbyId: string]: Game };
-	stopGame: () => void; 
+	stopGame: () => void;
+	startingNumber: number; // Ajoutez cette prop
 }
 
 const GameUi: React.FC<GameUiProps> = ({
@@ -40,21 +49,30 @@ const GameUi: React.FC<GameUiProps> = ({
 	handlePlayerAction,
 	games,
 	stopGame,
+	startingNumber,
 }) => {
 	const game = lobbyId ? games[lobbyId] : null;
 	const [currentRoll, setCurrentRoll] = useState<number | null>(null);
-	const isGameOver = game ? !game.isActive : false;
 	const currentPlayer =
 		game && lobbyData ? lobbyData.players[game.currentTurn] : null;
 	const isMyTurn = currentPlayer?.socketId === socket?.id;
-	const loser = lobbyData?.players.find(player => player.loser);
-	const [reachedOneMessage, setReachedOneMessage] = useState<string | null>(null);
+	const [reachedOneMessage, setReachedOneMessage] = useState<string | null>(
+		null
+	);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [dialogMessage, setDialogMessage] = useState("");
 
-	const isHost = lobbyData?.players.find(player => player.socketId === socket?.id)?.host;
+	const isHost = lobbyData?.players.find(
+		(player) => player.socketId === socket?.id
+	)?.host;
 
 	useEffect(() => {
 		if (socket) {
-			const handleGameStarted = ({ startingNumber }: { startingNumber: number }) => {
+			const handleGameStarted = ({
+				startingNumber,
+			}: {
+				startingNumber: number;
+			}) => {
 				console.log(`Game started with starting number: ${startingNumber}`);
 			};
 
@@ -66,16 +84,25 @@ const GameUi: React.FC<GameUiProps> = ({
 				randomNum: number;
 				socketId: string;
 			}) => {
-				console.log(`Turn changed: currentTurn = ${currentTurn}, randomNum = ${randomNum}`);
+				console.log(
+					`Turn changed: currentTurn = ${currentTurn}, randomNum = ${randomNum}`
+				);
 				setCurrentRoll(randomNum);
 			};
 
-			const handlePlayerReachedOne = ({ playerName, loserSocketId }: { playerName: string, loserSocketId: string }) => {
+			const handlePlayerReachedOne = ({
+				playerName,
+				loserSocketId,
+			}: {
+				playerName: string;
+				loserSocketId: string;
+			}) => {
 				if (loserSocketId === socket.id) {
-					setReachedOneMessage("You lost!");
+					setDialogMessage("You lost!");
 				} else {
-					setReachedOneMessage(`${playerName} has reached 1!`);
+					setDialogMessage(`${playerName} has reached 1!`);
 				}
+				setIsDialogOpen(true);
 			};
 
 			const handleCurrentRoll = ({ randomNum }: { randomNum: number }) => {
@@ -97,58 +124,70 @@ const GameUi: React.FC<GameUiProps> = ({
 		}
 	}, [socket]);
 
-	if (reachedOneMessage) {
-		return (
-			<div style={{ textAlign: 'center', marginTop: '50px' }}>
-				<h1>{reachedOneMessage}</h1>
-			</div>
-		);
-	}
-
 	const handleStopGame = () => {
 		console.log("Stop game button clicked");
 		stopGame();
 	};
 
+	const formatNumber = (num: number): string => {
+		return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+	};
+
 	return (
 		<main className="bg-background px-6">
-			{!isGameOver ? (
-				<>
-					<div>
-						<h3>{isMyTurn ? "It's your turn!" : `${currentPlayer?.nickname}'s turn`}</h3>
-						<div>
-							<h4>Current roll: {currentRoll !== null ? currentRoll : 'N/A'}</h4>
+					<div className="flex flex-col items-center gap-6 w-full m-auto max-w-96 mt-32">
+						<div className="bg-primary/10 rounded px-6 py-4 w-full flex items-center justify-center">
+							<p className="text-2xl font-bold truncate">
+								{isMyTurn
+									? "It's your turn !"
+									: `${currentPlayer?.nickname}'s turn`}
+							</p>
 						</div>
-						{isMyTurn && (
-							<Button onClick={handlePlayerAction}>Generate Random Number</Button>
-						)}
+						<div className="flex flex-col items-center justify-between w-full h-96">
+							<div>
+								<span className="text-8xl text-primary">
+									{currentRoll !== null ? (
+										<span>{formatNumber(currentRoll)}</span>
+									) : (
+										<span>{formatNumber(startingNumber)}</span>
+									)}
+								</span>
+							</div>
+							<Button
+								onClick={handlePlayerAction}
+								className="rounded mb-4 w-36 h-20 bg-primary/10"
+								disabled={!isMyTurn}
+							>
+								<span
+									className={`gradient-text text-3xl ${
+										!isMyTurn ? "opacity-50" : ""
+									}`}
+								>
+									Roll !
+								</span>
+							</Button>
+						</div>
 					</div>
 					{isHost && (
-						<Button onClick={handleStopGame} style={{ marginTop: '20px', color: 'red' }}>
-							Return to Lobby
+						<Button
+							onClick={handleStopGame}
+							className="mt-6 bg-red-500 hover:bg-red-600 text-white"
+						>
+							Retour au lobby
 						</Button>
 					)}
-				</>
-			) : (
-				<div>
-					<h3>Game Over</h3>
-					{loser ? (
-						loser.socketId === socket?.id ? (
-							<div>
-								<p>You lost!</p>
-								<p>Redirecting to lobby...</p>
-							</div>
-						) : (
-							<div>
-								<p>{loser.nickname} lost the game.</p>
-								<p>Redirecting to lobby...</p>
-							</div>
-						)
-					) : (
-						<p>The game has ended.</p>
-					)}
-				</div>
-			)}
+			
+
+			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+				<DialogContent className="w-4/5 sm:max-w-[425px]">
+					<DialogHeader>
+						<DialogTitle className="text-2xl text-center mb-4">Game Over</DialogTitle>
+						<DialogDescription className="text-2xl text-center">
+							{dialogMessage}
+						</DialogDescription>
+					</DialogHeader>
+				</DialogContent>
+			</Dialog>
 		</main>
 	);
 };

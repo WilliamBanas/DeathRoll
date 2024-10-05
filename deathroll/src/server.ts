@@ -22,6 +22,7 @@ interface Lobby {
 	lobbyId: string;
 	host: string;
 	players: Player[];
+	maxPlayers: number; // Ajout de la propriété maxPlayers
 }
 
 interface Game {
@@ -39,6 +40,8 @@ const games: { [lobbyId: string]: Game } = {};
 function createLobbyId() {
 	return Math.random().toString(36).substring(2, 9);
 }
+
+const MAX_PLAYERS = 10; // Définition du nombre maximal de joueurs
 
 app.prepare().then(() => {
   const httpServer = createServer(handler);
@@ -65,6 +68,7 @@ app.prepare().then(() => {
 				lobbyId,
 				host: nickname,
 				players: [player],
+				maxPlayers: MAX_PLAYERS, // Ajout de la propriété maxPlayers
 			};
 
 			lobbies.push(newLobby);
@@ -79,11 +83,17 @@ app.prepare().then(() => {
 		socket.on("joinLobby", ({ nickname, lobbyId }) => {
 			const lobby = lobbies.find((lobby) => lobby.lobbyId === lobbyId);
 			if (lobby) {
+				// Vérifier si le lobby est plein
+				if (lobby.players.length >= lobby.maxPlayers) {
+					socket.emit("lobbyError", "Le lobby est plein. Impossible de rejoindre.");
+					return;
+				}
+
 				// Check if the nickname is already in use in this lobby
 				const isNicknameInUse = lobby.players.some(player => player.nickname === nickname);
 				
 				if (isNicknameInUse) {
-					socket.emit("lobbyError", "Nickname already in use in this lobby.");
+					socket.emit("lobbyError", "Ce pseudo est déjà utilisé dans ce lobby.");
 					return;
 				}
 
@@ -98,11 +108,11 @@ app.prepare().then(() => {
 
 				lobby.players.push(player);
 				socket.join(lobbyId);
-				console.log(`Lobby joined with ID: ${lobbyId} by ${nickname}`);
+				console.log(`Lobby rejoint avec l'ID: ${lobbyId} par ${nickname}`);
 				io.to(lobbyId).emit("playerJoined", player);
 				socket.emit("lobbyJoined", { lobbyId, player });
 			} else {
-				socket.emit("lobbyError", "Lobby not found.");
+				socket.emit("lobbyError", "Lobby introuvable.");
 			}
 		});
 
@@ -150,10 +160,18 @@ app.prepare().then(() => {
 					isActive: true,
 					playerNumbers: {},
 					isFirstTurn: true,
-					startingNumber, // Ajoutez le nombre de départ ici
+					startingNumber, // Stockez le startingNumber dans l'objet Game
 				};
 
-				io.to(lobbyId).emit("gameStarted", { currentTurn: 0, startingNumber });
+				// Émettez plus d'informations lors du démarrage du jeu
+				io.to(lobbyId).emit("gameStarted", {
+					currentTurn: 0,
+					startingNumber,
+					players: lobby.players.map(player => ({
+						nickname: player.nickname,
+						socketId: player.socketId
+					}))
+				});
 			}
 		});
 
@@ -167,7 +185,6 @@ app.prepare().then(() => {
 				if (players && players.length > 0) {
 					const currentPlayer = players[game.currentTurn];
 					let randomNum: number;
-					let lastGeneratedNum: number | null = null;
 
 					// First turn logic
 					if (game.isFirstTurn) {
@@ -181,15 +198,13 @@ app.prepare().then(() => {
 									? players.length - 1
 									: game.currentTurn - 1
 							].socketId;
-						lastGeneratedNum = game.playerNumbers[previousPlayerSocketId];
+						const lastGeneratedNum = game.playerNumbers[previousPlayerSocketId];
 
 						randomNum = Math.floor(Math.random() * lastGeneratedNum) + 1;
 					}
 
 					console.log(
-						`Player: ${currentPlayer.nickname}, Last Generated Number: ${
-							lastGeneratedNum !== null ? lastGeneratedNum : "N/A"
-						}, Random Number: ${randomNum}`
+						`Player: ${currentPlayer.nickname}, Random Number: ${randomNum}`
 					);
 
 					// Save the generated number for the current player
@@ -217,9 +232,7 @@ app.prepare().then(() => {
 					// Emit the turn change to all players, including the generated number
 					io.to(lobbyId).emit("turnChanged", {
 						currentTurn: game.currentTurn,
-						randomNum, // Include the generated number
-						lastGeneratedNum:
-							lastGeneratedNum !== null ? lastGeneratedNum : undefined,
+						randomNum,
 						socketId: currentPlayer.socketId,
 					});
 

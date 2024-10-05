@@ -27,7 +27,6 @@ const Home: React.FC = () => {
 				console.log(`Lobby created with ID: ${lobbyId}`);
 				console.log(`Player data:`, player);
 				router.push(`/lobby/${lobbyId}`);
-				// Copier le lobbyId dans le presse-papier
 				navigator.clipboard.writeText(lobbyId);
 			});
 
@@ -39,6 +38,8 @@ const Home: React.FC = () => {
 
 			socket.on("lobbyError", (errorMessage: string) => {
 				setError(errorMessage);
+				// Optionally, you can clear the error after a few seconds:
+				setTimeout(() => setError(null), 5000);
 			});
 		} else {
 			console.error("Socket is not initialized");
@@ -79,7 +80,7 @@ const Home: React.FC = () => {
 		<main className="bg-background px-6">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
 				<div className="bg-card border rounded px-6 py-4 w-full h-fit flex flex-col gap-3">
-					{error && <p>{error}</p>}
+					{error && <p className="text-red-500">{error}</p>}
 					<Input
 						type="text"
 						placeholder="Enter Nickname"

@@ -52,6 +52,7 @@ const Lobby: React.FC = () => {
 	}>({});
 	const [startingNumber, setStartingNumber] = useState<number>(100);
 	const [dots, setDots] = useState("");
+	const [gameStartingNumber, setGameStartingNumber] = useState<number | null>(null);
 
 	const copyLobbyId = () => {
 		if (lobbyId) {
@@ -133,8 +134,8 @@ const Lobby: React.FC = () => {
 			socket.on("playerJoined", handlePlayerJoined);
 			socket.on("playerLeft", handlePlayerLeft);
 
-			socket.on("gameStarted", ({ currentTurn }) => {
-				console.log(`Game started! Current turn: ${currentTurn}`);
+			socket.on("gameStarted", ({ currentTurn, startingNumber }) => {
+				console.log(`Game started! Current turn: ${currentTurn}, Starting number: ${startingNumber}`);
 				setGames((prevGames) => ({
 					...prevGames,
 					[lobbyId]: {
@@ -142,8 +143,10 @@ const Lobby: React.FC = () => {
 						isActive: true,
 						isFirstTurn: true,
 						playerNumbers: {},
+						startingNumber,
 					} as Game,
 				}));
+				setGameStartingNumber(startingNumber);
 			});
 
 			socket.on("turnChanged", ({ currentTurn, randomNum, socketId }) => {
@@ -183,6 +186,7 @@ const Lobby: React.FC = () => {
 				socket.off("playerLeft");
 				socket.off("gameStarted");
 				socket.off("turnChanged");
+				socket.off("gameOver");
 			}
 		};
 	}, [socket, lobbyId, lobbyData?.players]);
@@ -197,16 +201,6 @@ const Lobby: React.FC = () => {
 	const startGame = () => {
 		if (socket && lobbyId) {
 			socket.emit("startGame", { lobbyId, startingNumber });
-			setGames((prevGames) => ({
-				...prevGames,
-				[lobbyId]: {
-					currentTurn: 0,
-					isActive: true,
-					isFirstTurn: true,
-					playerNumbers: {},
-					startingNumber,
-				} as Game,
-			}));
 		}
 	};
 
@@ -253,6 +247,7 @@ const Lobby: React.FC = () => {
 					socket={socket}
 					games={games}
 					stopGame={stopGame}
+					startingNumber={gameStartingNumber || startingNumber}
 				/>
 			) : (
 				<main className="bg-background px-6">
@@ -330,8 +325,8 @@ const Lobby: React.FC = () => {
 													</SelectTrigger>
 													<SelectContent className="bg-background rounded">
 														{Array.from(
-															{ length: 20 },
-															(_, i) => (i + 1) * 50
+															{ length: 100 },
+															(_, i) => (i + 1) * 100
 														).map((value) => (
 															<SelectItem key={value} value={value.toString()}>
 																{value}
