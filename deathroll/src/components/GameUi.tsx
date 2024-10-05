@@ -111,7 +111,7 @@ const GameUi: React.FC<GameUiProps> = ({
 	};
 
 	return (
-		<div>
+		<main className="bg-background px-6">
 			{!isGameOver ? (
 				<>
 					<div>
@@ -149,7 +149,7 @@ const GameUi: React.FC<GameUiProps> = ({
 					)}
 				</div>
 			)}
-		</div>
+		</main>
 	);
 };
 
