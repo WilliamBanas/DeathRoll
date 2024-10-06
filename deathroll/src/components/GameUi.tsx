@@ -62,6 +62,8 @@ const GameUi: React.FC<GameUiProps> = ({
 	const [dialogMessage, setDialogMessage] = useState("");
 	const [animatedNumber, setAnimatedNumber] = useState(startingNumber);
 	const previousNumberRef = useRef(startingNumber);
+	const [isAnimating, setIsAnimating] = useState(false);
+	const [gameOver, setGameOver] = useState(false);
 
 	const isHost = lobbyData?.players.find(
 		(player) => player.socketId === socket?.id
@@ -98,12 +100,16 @@ const GameUi: React.FC<GameUiProps> = ({
 				playerName: string;
 				loserSocketId: string;
 			}) => {
-				if (loserSocketId === socket.id) {
-					setDialogMessage("You lost!");
-				} else {
-					setDialogMessage(`${playerName} lost !`);
-				}
-				setIsDialogOpen(true);
+				setCurrentRoll(1);
+				setTimeout(() => {
+					if (loserSocketId === socket.id) {
+						setDialogMessage("You lost!");
+					} else {
+						setDialogMessage(`${playerName} lost !`);
+					}
+					setIsDialogOpen(true);
+					setGameOver(true);
+				}, 2000);
 			};
 
 			const handleCurrentRoll = ({ randomNum }: { randomNum: number }) => {
@@ -127,9 +133,10 @@ const GameUi: React.FC<GameUiProps> = ({
 
 	useEffect(() => {
 		if (currentRoll !== null) {
+			setIsAnimating(true);
 			const start = previousNumberRef.current;
 			const end = currentRoll;
-			const duration = 250;
+			const duration = 500;
 			const range = Math.abs(end - start);
 			const increment = end > start ? 1 : -1;
 			const stepTime = Math.floor(duration / range);
@@ -144,6 +151,7 @@ const GameUi: React.FC<GameUiProps> = ({
 				if (current === end) {
 					clearInterval(timer);
 					previousNumberRef.current = end;
+					setIsAnimating(false);
 				}
 			}, stepTime);
 
@@ -180,11 +188,11 @@ const GameUi: React.FC<GameUiProps> = ({
 				<Button
 					onClick={handlePlayerAction}
 					className="rounded mb-4 w-32 h-20 bg-primary/10"
-					disabled={!isMyTurn}
+					disabled={!isMyTurn || isAnimating || gameOver}
 				>
 					<span
 						className={`gradient-text text-3xl ${
-							!isMyTurn ? "opacity-50" : ""
+							!isMyTurn || isAnimating || gameOver ? "opacity-50" : ""
 						}`}
 					>
 						Roll !
@@ -192,16 +200,16 @@ const GameUi: React.FC<GameUiProps> = ({
 				</Button>
 			</div>
 			{isHost && (
-				<Button
-					onClick={handleStopGame}
-					className="mt-6 bg-red-500 hover:bg-red-600 text-white"
-				>
-					Retour au lobby
-				</Button>
-			)}
+					<Button
+						onClick={handleStopGame}
+						className="mt-6 bg-red-500 hover:bg-red-600 text-white"
+					>
+						Retour au lobby
+					</Button>
+				)}
 
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogContent className="w-4/5 sm:max-w-[425px]">
+				<DialogContent className="w-4/5 sm:max-w-[425px] rounded border-none">
 					<DialogHeader>
 						<DialogTitle className="text-2xl text-center mb-4">
 							Game Over

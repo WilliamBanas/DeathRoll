@@ -14,6 +14,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 interface Player {
 	host: boolean;
@@ -189,7 +190,7 @@ const Lobby: React.FC = () => {
 				socket.off("gameOver");
 			}
 		};
-	}, [socket, lobbyId, lobbyData?.players]);
+	}, [socket, lobbyId]);
 
 	const leaveLobby = () => {
 		if (socket) {
@@ -221,7 +222,7 @@ const Lobby: React.FC = () => {
 
 	const stopGame = () => {
 		if (socket && lobbyId) {
-			console.log("Emitting stopGame event"); // Ajoutez ce log
+			console.log("Emitting stopGame event");
 			socket.emit("stopGame", lobbyId);
 		}
 	};
@@ -250,7 +251,7 @@ const Lobby: React.FC = () => {
 					startingNumber={gameStartingNumber || startingNumber}
 				/>
 			) : (
-				<main className="bg-background px-6">
+				<main className="px-6">
 					<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
 						<div className="flex flex-col gap-4 w-full">
 							<div className="bg-primary/10 rounded px-6 py-4 w-full h-fit flex items-center justify-between gap-4">

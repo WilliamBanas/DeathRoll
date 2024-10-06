@@ -222,7 +222,7 @@ app.prepare().then(() => {
 							io.to(lobbyId).emit("gameOver", {
 								loser: currentPlayer.nickname,
 							});
-						}, 4000);
+						}, 6000);
 						return;
 					}
 
