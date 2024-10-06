@@ -38,7 +38,12 @@ const lobbies: Lobby[] = [];
 const games: { [lobbyId: string]: Game } = {};
 
 function createLobbyId() {
-	return Math.random().toString(36).substring(2, 9);
+	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+	let result = '';
+	for (let i = 0; i < 6; i++) {
+		result += characters.charAt(Math.floor(Math.random() * characters.length));
+	}
+	return result;
 }
 
 const MAX_PLAYERS = 10; // Définition du nombre maximal de joueurs
