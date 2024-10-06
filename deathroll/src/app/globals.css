@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  
+  font-family: var(--font-helvetica);
 }
 
 @layer utilities {
@@ -23,43 +23,43 @@ body {
 }
 
 @layer base {
-	:root {
-		/* Name: custom color palette
+  :root {
+    /* Name: custom color palette
        Author: Ilias Ism
        URL: https://gradient.page */
 
-		/* CSS: .bg-gradient { background: var(--gradient) } */
-		--gradient: linear-gradient(to top left, #3494e6, #ec6ead);
+    /* CSS: .bg-gradient { background: var(--gradient) } */
+    --gradient: linear-gradient(to top left,#e0c3fc,#8ec5fc);
 
-		--background: 221 50.7% 4.4%;
-		--foreground: 221 7.800000000000001% 97.75%;
+    --background: 287 59.15% 7.04%;
+    --foreground: 287 9.1% 99.4%;
 
-		--muted: 221 39% 16.5%;
-		--muted-foreground: 221 7.800000000000001% 55.5%;
+    --muted: 287 45.5% 26.4%;
+    --muted-foreground: 287 9.1% 58.8%;
 
-		--popover: 221 49.4% 7.15%;
-		--popover-foreground: 221 7.800000000000001% 97.75%;
+    --popover: 287 46.8% 11.44%;
+    --popover-foreground: 287 9.1% 99.4%;
 
-		--card: 221 49.4% 7.15%;
-		--card-foreground: 221 7.800000000000001% 97.75%;
+    --card: 287 46.8% 11.44%;
+    --card-foreground: 287 9.1% 99.4%;
 
-		--border: 221 39% 16.5%;
-		--input: 221 39% 16.5%;
+    --border: 287 45.5% 26.4%;
+    --input: 287 45.5% 26.4%;
 
-		--primary: 221 78% 55%;
-		--primary-foreground: 221 7.800000000000001% 5.5%;
+    --primary: 287 91% 88%;
+    --primary-foreground: 287 9.1% 8.8%;
 
-		--secondary: 221 39% 16.5%;
-		--secondary-foreground: 221 7.800000000000001% 97.75%;
+    --secondary: 287 45.5% 26.4%;
+    --secondary-foreground: 287 9.1% 99.4%;
 
-		--accent: 221 39% 16.5%;
-		--accent-foreground: 221 7.800000000000001% 97.75%;
+    --accent: 287 45.5% 26.4%;
+    --accent-foreground: 287 9.1% 99.4%;
 
-		--destructive: 0 62.8% 30.6%;
-		--destructive-foreground: 221 7.800000000000001% 97.75%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 287 9.1% 99.4%;
 
-		--ring: 221 78% 55%;
-	}
+    --ring: 287 91% 88%;
+  }
 }
 
 @layer base {

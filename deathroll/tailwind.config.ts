@@ -77,6 +77,10 @@ const config: Config = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
+  		},
+  		fontFamily: {
+  			helvetica: ['var(--font-helvetica)', 'sans-serif'],
+  			sans: ['var(--font-helvetica)', 'system-ui', 'sans-serif'],
   		}
   	}
   },

@@ -263,7 +263,7 @@ const Lobby: React.FC = () => {
 									<Copy className="w-5" />
 								</Button>
 							</div>
-							<div className="rounded p-3 w-full bg-gradient">
+							<div className="rounded p-1 w-full bg-gradient">
 								<div className="bg-background rounded border-2">
 									<h2 className="text-xl w-full text-center p-2">Players</h2>
 									<ul className="h-fit grid grid-cols-2 gap-x-4 gap-y-2 p-4">

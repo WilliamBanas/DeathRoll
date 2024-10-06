@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { Button } from "@/components/ui/button";
-import { Dices } from "lucide-react";
 import {
 	Dialog,
 	DialogContent,
@@ -61,6 +60,8 @@ const GameUi: React.FC<GameUiProps> = ({
 	);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [dialogMessage, setDialogMessage] = useState("");
+	const [animatedNumber, setAnimatedNumber] = useState(startingNumber);
+	const previousNumberRef = useRef(startingNumber);
 
 	const isHost = lobbyData?.players.find(
 		(player) => player.socketId === socket?.id
@@ -70,7 +71,7 @@ const GameUi: React.FC<GameUiProps> = ({
 		if (socket) {
 			const handleGameStarted = ({
 				startingNumber,
-			}: {
+				}: {
 				startingNumber: number;
 			}) => {
 				console.log(`Game started with starting number: ${startingNumber}`);
@@ -100,7 +101,7 @@ const GameUi: React.FC<GameUiProps> = ({
 				if (loserSocketId === socket.id) {
 					setDialogMessage("You lost!");
 				} else {
-					setDialogMessage(`${playerName} has reached 1!`);
+					setDialogMessage(`${playerName} lost !`);
 				}
 				setIsDialogOpen(true);
 			};
@@ -124,6 +125,32 @@ const GameUi: React.FC<GameUiProps> = ({
 		}
 	}, [socket]);
 
+	useEffect(() => {
+		if (currentRoll !== null) {
+			const start = previousNumberRef.current;
+			const end = currentRoll;
+			const duration = 250;
+			const range = Math.abs(end - start);
+			const increment = end > start ? 1 : -1;
+			const stepTime = Math.floor(duration / range);
+
+			let current = start;
+			const timer = setInterval(() => {
+				current += increment * Math.max(1, Math.floor(range / 100));
+				if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+					current = end;
+				}
+				setAnimatedNumber(current);
+				if (current === end) {
+					clearInterval(timer);
+					previousNumberRef.current = end;
+				}
+			}, stepTime);
+
+			return () => clearInterval(timer);
+		}
+	}, [currentRoll]);
+
 	const handleStopGame = () => {
 		console.log("Stop game button clicked");
 		stopGame();
@@ -135,54 +162,51 @@ const GameUi: React.FC<GameUiProps> = ({
 
 	return (
 		<main className="bg-background px-6">
-					<div className="flex flex-col items-center gap-6 w-full m-auto max-w-96 mt-32">
-						<div className="bg-primary/10 rounded px-6 py-4 w-full flex items-center justify-center">
-							<p className="text-2xl font-bold truncate">
-								{isMyTurn
-									? "It's your turn !"
-									: `${currentPlayer?.nickname}'s turn`}
-							</p>
-						</div>
-						<div className="flex flex-col items-center justify-between w-full h-96">
-							<div>
-								<span className="text-8xl text-primary">
-									{currentRoll !== null ? (
-										<span>{formatNumber(currentRoll)}</span>
-									) : (
-										<span>{formatNumber(startingNumber)}</span>
-									)}
-								</span>
-							</div>
-							<Button
-								onClick={handlePlayerAction}
-								className="rounded mb-4 w-36 h-20 bg-primary/10"
-								disabled={!isMyTurn}
-							>
-								<span
-									className={`gradient-text text-3xl ${
-										!isMyTurn ? "opacity-50" : ""
-									}`}
-								>
-									Roll !
-								</span>
-							</Button>
-						</div>
+			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
+				<div className="bg-primary/10 rounded px-6 py-4 w-full flex items-center justify-center">
+					<p className="text-2xl font-bold truncate">
+						{isMyTurn
+							? "It's your turn !"
+							: `${currentPlayer?.nickname}'s turn`}
+					</p>
+				</div>
+				<div className="flex flex-col items-center justify-center w-full h-96">
+					<div>
+						<p className="text-7xl text-white">
+							1 - <span className="text-primary">{formatNumber(animatedNumber)}</span>
+						</p>
 					</div>
-					{isHost && (
-						<Button
-							onClick={handleStopGame}
-							className="mt-6 bg-red-500 hover:bg-red-600 text-white"
-						>
-							Retour au lobby
-						</Button>
-					)}
-			
+				</div>
+				<Button
+					onClick={handlePlayerAction}
+					className="rounded mb-4 w-32 h-20 bg-primary/10"
+					disabled={!isMyTurn}
+				>
+					<span
+						className={`gradient-text text-3xl ${
+							!isMyTurn ? "opacity-50" : ""
+						}`}
+					>
+						Roll !
+					</span>
+				</Button>
+			</div>
+			{isHost && (
+				<Button
+					onClick={handleStopGame}
+					className="mt-6 bg-red-500 hover:bg-red-600 text-white"
+				>
+					Retour au lobby
+				</Button>
+			)}
 
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 				<DialogContent className="w-4/5 sm:max-w-[425px]">
 					<DialogHeader>
-						<DialogTitle className="text-2xl text-center mb-4">Game Over</DialogTitle>
-						<DialogDescription className="text-2xl text-center">
+						<DialogTitle className="text-2xl text-center mb-4">
+							Game Over
+						</DialogTitle>
+						<DialogDescription className="text-2xl font-semibold text-center">
 							{dialogMessage}
 						</DialogDescription>
 					</DialogHeader>
