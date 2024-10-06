@@ -10,7 +10,6 @@ import {
 	AccordionTrigger,
 	AccordionContent,
 } from "@/components/ui/accordion";
-import styles from './Home.module.css'; // Assurez-vous de créer ce fichier CSS module
 
 const Home: React.FC = () => {
 	const socket = useSocket();

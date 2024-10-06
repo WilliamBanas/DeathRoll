@@ -6,7 +6,7 @@ import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { CircleHelp, Copy, Crown, LogOut } from "lucide-react";
+import { Copy, Crown, LogOut } from "lucide-react";
 import {
 	Select,
 	SelectContent,
@@ -14,7 +14,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 
 interface Player {
 	host: boolean;
@@ -48,9 +47,6 @@ const Lobby: React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [games, setGames] = useState<{ [lobbyId: string]: Game }>({});
-	const [playerNumbers, setPlayerNumbers] = useState<{
-		[socketId: string]: number;
-	}>({});
 	const [startingNumber, setStartingNumber] = useState<number>(100);
 	const [dots, setDots] = useState("");
 	const [gameStartingNumber, setGameStartingNumber] = useState<number | null>(null);
@@ -67,7 +63,7 @@ const Lobby: React.FC = () => {
 				if (prevDots.length >= 3) return "";
 				return prevDots + ".";
 			});
-		}, 500); // Change de point toutes les 500ms
+		}, 500);
 
 		return () => clearInterval(interval);
 	}, []);
@@ -150,15 +146,7 @@ const Lobby: React.FC = () => {
 				setGameStartingNumber(startingNumber);
 			});
 
-			socket.on("turnChanged", ({ currentTurn, randomNum, socketId }) => {
-				const currentPlayer = lobbyData?.players[currentTurn];
-				if (currentPlayer && currentPlayer.socketId === socketId) {
-					setPlayerNumbers((prevNumbers) => ({
-						...prevNumbers,
-						[socketId]: randomNum,
-					}));
-				}
-
+			socket.on("turnChanged", ({ currentTurn }) => {
 				setGames((prevGames) => ({
 					...prevGames,
 					[lobbyId]: {
@@ -166,6 +154,15 @@ const Lobby: React.FC = () => {
 						currentTurn,
 					},
 				}));
+
+				// Remove this unused code:
+				// const currentPlayer = lobbyData?.players[currentTurn];
+				// if (currentPlayer && currentPlayer.socketId === socketId) {
+				//   setPlayerNumbers((prevNumbers) => ({
+				//     ...prevNumbers,
+				//     [socketId]: randomNum,
+				//   }));
+				// }
 			});
 
 			socket.on("gameOver", () => {
@@ -190,7 +187,7 @@ const Lobby: React.FC = () => {
 				socket.off("gameOver");
 			}
 		};
-	}, [socket, lobbyId]);
+	}, [socket, lobbyId, lobbyData?.players]);
 
 	const leaveLobby = () => {
 		if (socket) {

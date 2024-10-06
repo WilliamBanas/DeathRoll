@@ -55,9 +55,6 @@ const GameUi: React.FC<GameUiProps> = ({
 	const currentPlayer =
 		game && lobbyData ? lobbyData.players[game.currentTurn] : null;
 	const isMyTurn = currentPlayer?.socketId === socket?.id;
-	const [reachedOneMessage, setReachedOneMessage] = useState<string | null>(
-		null
-	);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [dialogMessage, setDialogMessage] = useState("");
 	const [animatedNumber, setAnimatedNumber] = useState(startingNumber);
@@ -174,11 +171,11 @@ const GameUi: React.FC<GameUiProps> = ({
 				<div className="bg-primary/10 rounded px-6 py-4 w-full flex items-center justify-center">
 					<div className="text-2xl font-bold w-full">
 						{isMyTurn
-							? (<p className="flex justify-center items-center">It's your turn !</p>)
+							? (<p className="flex justify-center items-center">It&apos;s your turn !</p>)
 							: (
 								<p className="flex justify-center items-center">
 									<span className="truncate max-w-[70%]">{currentPlayer?.nickname}</span>
-									<span className="whitespace-nowrap">'s turn</span>
+									<span className="whitespace-nowrap">&apos;s turn</span>
 								</p>
 							)}
 					</div>
