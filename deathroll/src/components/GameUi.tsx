@@ -103,9 +103,9 @@ const GameUi: React.FC<GameUiProps> = ({
 				setCurrentRoll(1);
 				setTimeout(() => {
 					if (loserSocketId === socket.id) {
-						setDialogMessage("You lost!");
+						setDialogMessage("You");
 					} else {
-						setDialogMessage(`${playerName} lost !`);
+						setDialogMessage(`${playerName}`);
 					}
 					setIsDialogOpen(true);
 					setGameOver(true);
@@ -172,11 +172,16 @@ const GameUi: React.FC<GameUiProps> = ({
 		<main className="bg-background px-6">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
 				<div className="bg-primary/10 rounded px-6 py-4 w-full flex items-center justify-center">
-					<p className="text-2xl font-bold truncate">
+					<div className="text-2xl font-bold w-full">
 						{isMyTurn
-							? "It's your turn !"
-							: `${currentPlayer?.nickname}'s turn`}
-					</p>
+							? (<p className="flex justify-center items-center">It's your turn !</p>)
+							: (
+								<p className="flex justify-center items-center">
+									<span className="truncate max-w-[70%]">{currentPlayer?.nickname}</span>
+									<span className="whitespace-nowrap">'s turn</span>
+								</p>
+							)}
+					</div>
 				</div>
 				<div className="flex flex-col items-center justify-center w-full h-96">
 					<div>
@@ -214,8 +219,17 @@ const GameUi: React.FC<GameUiProps> = ({
 						<DialogTitle className="text-2xl text-center mb-4">
 							Game Over
 						</DialogTitle>
-						<DialogDescription className="text-2xl font-semibold text-center">
-							{dialogMessage}
+						<DialogDescription className="max-w-full text-2xl font-semibold text-center">
+							{dialogMessage === "You" ? (
+								<span>You lost !</span>
+							) : (
+								<div className="flex justify-center items-center w-full overflow-hidden">
+									<div className="flex-shrink min-w-0 mr-1">
+										<span className="block truncate">{dialogMessage}</span>
+									</div>
+									<span className="flex-shrink-0">lost !</span>
+								</div>
+							)}
 						</DialogDescription>
 					</DialogHeader>
 				</DialogContent>
