@@ -192,7 +192,7 @@ const GameUi: React.FC<GameUiProps> = ({
 				</div>
 				<Button
 					onClick={handlePlayerAction}
-					className="rounded mb-4 w-32 h-20 bg-primary/10"
+					className="rounded mb-4 w-32 h-20 bg-primary/10 hover:bg-primary/50"
 					disabled={!isMyTurn || isAnimating || gameOver}
 				>
 					<span
