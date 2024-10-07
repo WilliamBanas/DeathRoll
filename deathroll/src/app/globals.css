@@ -24,11 +24,6 @@ body {
 
 @layer base {
   :root {
-    /* Name: custom color palette
-       Author: Ilias Ism
-       URL: https://gradient.page */
-
-    /* CSS: .bg-gradient { background: var(--gradient) } */
     --gradient: linear-gradient(to top left,#e0c3fc,#8ec5fc);
 
     --background: 287 59.15% 7.04%;
