@@ -37,7 +37,6 @@ const Home: React.FC = () => {
 
 			socket.on("lobbyError", (errorMessage: string) => {
 				setError(errorMessage);
-				// Optionally, you can clear the error after a few seconds:
 				setTimeout(() => setError(null), 5000);
 			});
 		} else {

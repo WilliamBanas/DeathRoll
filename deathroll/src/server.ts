@@ -5,7 +5,6 @@ import { Server } from "socket.io";
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
-// when using middleware `hostname` and `port` must be provided below
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
 
@@ -22,7 +21,7 @@ interface Lobby {
 	lobbyId: string;
 	host: string;
 	players: Player[];
-	maxPlayers: number; // Ajout de la propriété maxPlayers
+	maxPlayers: number; 
 }
 
 interface Game {
@@ -30,7 +29,7 @@ interface Game {
 	currentTurn: number;
 	playerNumbers: Record<string, number>;
 	isFirstTurn: boolean;
-	startingNumber: number; // Ajoutez le nombre de départ ici
+	startingNumber: number; 
 }
 
 const lobbies: Lobby[] = [];
@@ -46,7 +45,7 @@ function createLobbyId() {
 	return result;
 }
 
-const MAX_PLAYERS = 10; // Définition du nombre maximal de joueurs
+const MAX_PLAYERS = 10; 
 
 app.prepare().then(() => {
   const httpServer = createServer(handler);
@@ -73,7 +72,7 @@ app.prepare().then(() => {
 				lobbyId,
 				host: nickname,
 				players: [player],
-				maxPlayers: MAX_PLAYERS, // Ajout de la propriété maxPlayers
+				maxPlayers: MAX_PLAYERS, 
 			};
 
 			lobbies.push(newLobby);
@@ -88,13 +87,11 @@ app.prepare().then(() => {
 		socket.on("joinLobby", ({ nickname, lobbyId }) => {
 			const lobby = lobbies.find((lobby) => lobby.lobbyId === lobbyId);
 			if (lobby) {
-				// Vérifier si le lobby est plein
 				if (lobby.players.length >= lobby.maxPlayers) {
 					socket.emit("lobbyError", "Le lobby est plein. Impossible de rejoindre.");
 					return;
 				}
 
-				// Check if the nickname is already in use in this lobby
 				const isNicknameInUse = lobby.players.some(player => player.nickname === nickname);
 				
 				if (isNicknameInUse) {
@@ -165,10 +162,9 @@ app.prepare().then(() => {
 					isActive: true,
 					playerNumbers: {},
 					isFirstTurn: true,
-					startingNumber, // Stockez le startingNumber dans l'objet Game
+					startingNumber, 
 				};
 
-				// Émettez plus d'informations lors du démarrage du jeu
 				io.to(lobbyId).emit("gameStarted", {
 					currentTurn: 0,
 					startingNumber,
@@ -191,12 +187,10 @@ app.prepare().then(() => {
 					const currentPlayer = players[game.currentTurn];
 					let randomNum: number;
 
-					// First turn logic
 					if (game.isFirstTurn) {
 						randomNum = Math.floor(Math.random() * game.startingNumber) + 1;
 						game.isFirstTurn = false;
 					} else {
-						// Use the last generated number as the new range limit
 						const previousPlayerSocketId =
 							players[
 								game.currentTurn === 0
@@ -212,13 +206,11 @@ app.prepare().then(() => {
 						`Player: ${currentPlayer.nickname}, Random Number: ${randomNum}`
 					);
 
-					// Save the generated number for the current player
 					game.playerNumbers[currentPlayer.socketId] = randomNum;
 
-					// If the player generates 1, they lose
 					if (randomNum === 1) {
 						game.isActive = false;
-						currentPlayer.loser = true; // Mark the current player as loser
+						currentPlayer.loser = true; 
 						io.to(lobbyId).emit("playerReachedOne", {
 							playerName: currentPlayer.nickname,
 							loserSocketId: currentPlayer.socketId
@@ -231,24 +223,21 @@ app.prepare().then(() => {
 						return;
 					}
 
-					// Pass the turn to the next player
 					game.currentTurn = (game.currentTurn + 1) % players.length;
 
-					// Emit the turn change to all players, including the generated number
 					io.to(lobbyId).emit("turnChanged", {
 						currentTurn: game.currentTurn,
 						randomNum,
 						socketId: currentPlayer.socketId,
 					});
 
-					// Emit the generated number so all players can display it
 					io.to(lobbyId).emit("currentRoll", { randomNum });
 				}
 			}
 		});
 
 		socket.on("stopGame", (lobbyId) => {
-			console.log(`Received stopGame event for lobby ${lobbyId}`); // Ajoutez ce log
+			console.log(`Received stopGame event for lobby ${lobbyId}`); 
 			const game = games[lobbyId];
 			if (game && game.isActive) {
 				game.isActive = false;
@@ -264,7 +253,6 @@ app.prepare().then(() => {
 		socket.on("disconnect", () => {
 			console.log(`User disconnected: connection id: ${socket.id}`);
 
-			// Find the lobby the user was in
 			const lobby = lobbies.find((lobby) =>
 				lobby.players.some((player) => player.socketId === socket.id)
 			);
@@ -275,12 +263,10 @@ app.prepare().then(() => {
 				);
 
 				if (playerLeaving) {
-					// Remove player from lobby
 					lobby.players = lobby.players.filter(
 						(player) => player.socketId !== socket.id
 					);
 
-					// If the player was the host, reassign host to the next player
 					if (playerLeaving.host) {
 						if (lobby.players.length > 0) {
 							const newHost = lobby.players[0];
@@ -289,20 +275,17 @@ app.prepare().then(() => {
 								newHost: newHost.nickname,
 							});
 						} else {
-							// If there are no players left, remove the lobby
 							const lobbyIndex = lobbies.indexOf(lobby);
 							if (lobbyIndex !== -1) {
 								lobbies.splice(lobbyIndex, 1);
 								console.log(`Lobby with ID: ${lobby.lobbyId} removed.`);
 							}
-							return; // Exit early since the lobby is removed
+							return; 
 						}
 					}
 
-					// Check if the game is active
 					const game = games[lobby.lobbyId];
 					if (game && game.isActive) {
-						// If there are no players left after the player leaves, stop the game
 						if (lobby.players.length === 0) {
 							game.isActive = false;
 							io.to(lobby.lobbyId).emit("gameOver", {
@@ -312,7 +295,6 @@ app.prepare().then(() => {
 						}
 					}
 
-					// Notify other players that someone left
 					socket.broadcast.to(lobby.lobbyId).emit("playerLeft", socket.id);
 					console.log(`Player left the lobby: ${socket.id}`);
 				}

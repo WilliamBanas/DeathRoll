@@ -154,15 +154,6 @@ const Lobby: React.FC = () => {
 						currentTurn,
 					},
 				}));
-
-				// Remove this unused code:
-				// const currentPlayer = lobbyData?.players[currentTurn];
-				// if (currentPlayer && currentPlayer.socketId === socketId) {
-				//   setPlayerNumbers((prevNumbers) => ({
-				//     ...prevNumbers,
-				//     [socketId]: randomNum,
-				//   }));
-				// }
 			});
 
 			socket.on("gameOver", () => {
