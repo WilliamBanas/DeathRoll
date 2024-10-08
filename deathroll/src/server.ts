@@ -50,7 +50,15 @@ const MAX_PLAYERS = 10;
 app.prepare().then(() => {
   const httpServer = createServer(handler);
 
-  const io = new Server(httpServer);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: process.env.NODE_ENV === "production" 
+        ? ["https://deathroll-gamma.vercel.app"] 
+        : ["http://localhost:3000"],
+      methods: ["GET", "POST"],
+      credentials: true
+    }
+  });
 
   io.on("connection", (socket) => {
 		console.log(`User connected: connection id: ${socket.id}`);
