@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-const API_URL = "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
 
 const SocketContext = createContext<Socket | null>(null);
 
@@ -14,21 +14,18 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    
-      const newSocketInstance = io(`${API_URL}`, {
-        withCredentials: true,
-      });
+    const newSocketInstance = io(API_URL, {
+      withCredentials: true,
+    });
      
-      setSocket(newSocketInstance);
-      newSocketInstance.on("connect", () => {
-        console.log(`Socket connected: ${newSocketInstance.id}`);
-      });
+    setSocket(newSocketInstance);
+    newSocketInstance.on("connect", () => {
+      console.log(`Socket connected: ${newSocketInstance.id}`);
+    });
 
-      newSocketInstance.on("disconnect", () => {
-        console.log(`Socket disconnected: ${newSocketInstance.id}`);
-      });
-
-    
+    newSocketInstance.on("disconnect", () => {
+      console.log(`Socket disconnected: ${newSocketInstance.id}`);
+    });
   }, []);
 
   return <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>;
