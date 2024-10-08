@@ -3,8 +3,7 @@ import next from "next";
 import { Server } from "socket.io";
 import dotenv from 'dotenv';
 
-// Charger les variables d'environnement
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.local' });
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME || "localhost";
