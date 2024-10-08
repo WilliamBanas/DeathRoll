@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
 import { SocketProvider } from "@/contexts/socket";
 import Header from "@/components/Header";
+import "./globals.css";
 
 const helvetica = localFont({
   src: "./fonts/Helvetica.woff",

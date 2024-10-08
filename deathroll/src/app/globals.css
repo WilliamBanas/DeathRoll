@@ -16,7 +16,6 @@ body {
 		background-clip: text;
 		color: transparent;
 	}
-	/* Ajoutez cette définition */
 	.bg-gradient {
 		background-image: var(--gradient);
 	}
