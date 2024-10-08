@@ -1,10 +1,14 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
+import dotenv from 'dotenv';
+
+// Charger les variables d'environnement
+dotenv.config({ path: '.env.local' });
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
-const port = 3000;
+const hostname = process.env.HOSTNAME || "localhost";
+const port = parseInt(process.env.PORT || "3000", 10);
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
 
@@ -52,9 +56,7 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.NODE_ENV === "production" 
-        ? ["https://deathroll-gamma.vercel.app"] 
-        : ["http://localhost:3000"],
+      origin: process.env.NEXT_PUBLIC_SOCKET_URL,
       methods: ["GET", "POST"],
       credentials: true
     }
@@ -156,6 +158,7 @@ app.prepare().then(() => {
 					}
 
 					socket.broadcast.to(lobbyId).emit("playerLeft", socket.id);
+					console.log(`Player left the lobby: ${socket.id}`);
 				}
 			}
 		});
@@ -316,6 +319,6 @@ app.prepare().then(() => {
       process.exit(1);
     })
     .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`);
+      console.log(`> Ready on ${process.env.NEXT_PUBLIC_SOCKET_URL}`);
     });
 });
