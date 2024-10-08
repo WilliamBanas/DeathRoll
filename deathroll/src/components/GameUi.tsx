@@ -167,7 +167,7 @@ const GameUi: React.FC<GameUiProps> = ({
 
 	return (
 		<main className="bg-background px-6">
-			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
+			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-16">
 				<div className="bg-primary/10 rounded px-6 py-4 w-full flex items-center justify-center">
 					<div className="text-2xl font-bold w-full">
 						{isMyTurn

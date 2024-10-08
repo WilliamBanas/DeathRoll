@@ -80,7 +80,7 @@ const Home: React.FC = () => {
 
 	return (
 		<main className="px-6">
-			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-32">
+			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-16">
 					<div className="bg-card border rounded px-6 py-4 w-full h-fit flex flex-col gap-3">
 						{error && <p className="text-red-500">{error}</p>}
 						<Input

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SocketProvider } from "@/contexts/socket";
+import Header from "@/components/Header";
 
 const helvetica = localFont({
   src: "./fonts/Helvetica.woff",
@@ -25,6 +26,7 @@ export default function RootLayout({
         className={`${helvetica.variable} sans-serif antialiased`}
       >
         <SocketProvider>
+          <Header />
           {children}
         </SocketProvider>
       </body>
