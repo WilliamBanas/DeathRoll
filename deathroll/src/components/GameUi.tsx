@@ -193,7 +193,7 @@ const GameUi: React.FC<GameUiProps> = ({
 					disabled={!isMyTurn || isAnimating || gameOver}
 				>
 					<span
-						className={`gradient-text text-3xl ${
+						className={`text-primary text-3xl ${
 							!isMyTurn || isAnimating || gameOver ? "opacity-50" : ""
 						}`}
 					>

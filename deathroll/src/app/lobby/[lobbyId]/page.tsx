@@ -252,8 +252,8 @@ const Lobby: React.FC = () => {
 									<Copy className="w-5" />
 								</Button>
 							</div>
-							<div className="rounded p-1 w-full bg-gradient">
-								<div className="bg-background rounded border-2">
+							<div className="rounded p-1 w-full bg-primary">
+								<div className="bg-background rounded">
 									<h2 className="text-xl w-full text-center p-2">Players</h2>
 									<ul className="h-fit grid grid-cols-2 gap-x-4 gap-y-2 p-4">
 										{Array.from({ length: 10 }).map((_, index) => {
@@ -268,11 +268,7 @@ const Lobby: React.FC = () => {
 															<>
 																{player.host && (
 																	<Crown
-																		className={`w-4 h-4 flex-shrink-0 ${
-																			player.socketId === socket?.id
-																				? "fill-[#FFD700] stroke-[#FFD700]"
-																				: "fill-[#FFD700] stroke-[#FFD700]"
-																		}`}
+																		className={`w-4 h-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
 																		fill="currentColor"
 																		stroke="currentColor"
 																	/>
