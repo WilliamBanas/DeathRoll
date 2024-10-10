@@ -125,6 +125,18 @@ const Home: React.FC = () => {
 									the game host. The next player has to roll a number between 1
 									and the number the previous player rolled, and so on... The
 									first player to hit 1 loses.
+
+                  Example:
+
+                  Default value is 100.
+
+                  Player1 rolls between 1 and 100 and obtains 42.
+                  Player2 rolls between 1 and 42 and obtains 33.
+                  Player3 rolls between 1 and 33 and obtains 12.
+                  Player4 rolls between 1 and 12 and obtains 8.
+                  Player5 rolls between 1 and 8 and obtains 1.
+
+                  Player5 loses.
 								</AccordionContent>
 							</AccordionItem>
 						</Accordion>
