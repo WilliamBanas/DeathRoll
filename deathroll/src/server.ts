@@ -8,6 +8,7 @@ dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env.production' 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME || "localhost";
 const port = parseInt(process.env.PORT || "3000", 10);
+const baseUrl = dev ? process.env.NEXT_PUBLIC_API_URL : process.env.NEXT_PUBLIC_SOCKET_URL;
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
 
@@ -55,7 +56,7 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.NEXT_PUBLIC_SOCKET_URL,
+      origin: baseUrl, 
       methods: ["GET", "POST"],
       credentials: true
     }
@@ -318,6 +319,6 @@ app.prepare().then(() => {
       process.exit(1);
     })
     .listen(port, () => {
-      console.log(`> Ready on ${process.env.NEXT_PUBLIC_SOCKET_URL}`);
+      console.log(`> Ready on ${baseUrl}`); 
     });
 });

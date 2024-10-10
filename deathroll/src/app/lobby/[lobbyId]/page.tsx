@@ -6,7 +6,7 @@ import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Copy, Crown, LogOut } from "lucide-react";
+import { Copy, Crown, LogOut, User } from "lucide-react";
 import {
 	Select,
 	SelectContent,
@@ -49,7 +49,9 @@ const Lobby: React.FC = () => {
 	const [games, setGames] = useState<{ [lobbyId: string]: Game }>({});
 	const [startingNumber, setStartingNumber] = useState<number>(100);
 	const [dots, setDots] = useState("");
-	const [gameStartingNumber, setGameStartingNumber] = useState<number | null>(null);
+	const [gameStartingNumber, setGameStartingNumber] = useState<number | null>(
+		null
+	);
 
 	const copyLobbyId = () => {
 		if (lobbyId) {
@@ -132,7 +134,9 @@ const Lobby: React.FC = () => {
 			socket.on("playerLeft", handlePlayerLeft);
 
 			socket.on("gameStarted", ({ currentTurn, startingNumber }) => {
-				console.log(`Game started! Current turn: ${currentTurn}, Starting number: ${startingNumber}`);
+				console.log(
+					`Game started! Current turn: ${currentTurn}, Starting number: ${startingNumber}`
+				);
 				setGames((prevGames) => ({
 					...prevGames,
 					[lobbyId]: {
@@ -252,44 +256,42 @@ const Lobby: React.FC = () => {
 									<Copy className="w-5" />
 								</Button>
 							</div>
-							<div className="rounded p-1 w-full bg-primary">
-								<div className="bg-background rounded">
-									<h2 className="text-xl w-full text-center p-2">Players</h2>
-									<ul className="h-fit grid grid-cols-2 gap-x-4 gap-y-2 p-4">
-										{Array.from({ length: 10 }).map((_, index) => {
-											const player = lobbyData?.players[index];
-											return (
-												<li
-													className="flex items-center gap-2 h-10"
-													key={index}
-												>
-													<div className="w-full h-full bg-card rounded-sm flex items-center gap-2 px-2 overflow-hidden">
-														{player ? (
-															<>
-																{player.host && (
-																	<Crown
-																		className={`w-4 h-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
-																		fill="currentColor"
-																		stroke="currentColor"
-																	/>
-																)}
-																<p
-																	className={`text-lg font-bold truncate ${
-																		player.socketId === socket?.id
-																			? "text-primary"
-																			: ""
-																	}`}
-																>
-																	{player.nickname}
-																</p>
-															</>
-														) : null}
-													</div>
-												</li>
-											);
+							<div className="flex flex-col gap-2 rounded">
+								<h2 className="text-2xl w-full p-2">Players</h2>
+								<ul className="h-fit grid grid-cols-2 gap-x-4 gap-y-2">
+									{Array.from({ length: 10 }).map((_, index) => {
+										const player = lobbyData?.players[index];
+										return (
+											<li className="flex items-center gap-2 h-12" key={index}>
+												<div className="w-full h-full bg-card rounded flex items-center gap-2 px-2 overflow-hidden">
+													{player ? (
+														<>
+															{player.host && (
+																<Crown
+																	className={`w-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
+																	fill="currentColor"
+																	stroke="currentColor"
+																/>
+															)}
+															{player.socketId === socket?.id && (
+																<User className="w-4 flex-shrink-0 text-primary fill-primary" />
+															)}
+															<p
+																className={`text-lg font-bold truncate ${
+																	player.socketId === socket?.id
+																		? "text-primary"
+																		: ""
+																}`}
+															>
+																{player.nickname}
+															</p>
+														</>
+													) : null}
+												</div>
+											</li>
+										);
 										})}
-									</ul>
-								</div>
+								</ul>
 							</div>
 						</div>
 						<div className="bg-card border rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
