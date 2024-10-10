@@ -55,9 +55,7 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : process.env.NEXT_PUBLIC_SOCKET_URL,
+      origin: process.env.NEXT_PUBLIC_SOCKET_URL,
       methods: ["GET", "POST"],
       credentials: true
     }
