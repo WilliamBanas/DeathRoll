@@ -243,8 +243,8 @@ const Lobby: React.FC = () => {
 					startingNumber={gameStartingNumber || startingNumber}
 				/>
 			) : (
-				<main className="px-6">
-					<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-16">
+				<main className="px-6 my-16">
+					<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 ">
 						<div className="flex flex-col gap-4 w-full">
 							<div className="bg-primary/10 rounded px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 								<p className="text-2xl">{lobbyId}</p>
