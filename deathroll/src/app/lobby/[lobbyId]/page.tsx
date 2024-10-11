@@ -258,7 +258,7 @@ const Lobby: React.FC = () => {
 							</div>
 							<div className="flex flex-col gap-2 rounded">
 								<h2 className="text-2xl w-full p-2">Players</h2>
-								<ul className="h-fit grid grid-cols-2 gap-x-4 gap-y-2">
+								<ul className="h-fit grid grid-cols-2 gap-3">
 									{Array.from({ length: 10 }).map((_, index) => {
 										const player = lobbyData?.players[index];
 										return (
