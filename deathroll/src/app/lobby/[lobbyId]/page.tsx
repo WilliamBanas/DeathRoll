@@ -250,7 +250,7 @@ const Lobby: React.FC = () => {
 								<p className="text-2xl">{lobbyId}</p>
 								<Button
 									variant="ghost"
-									className="rounded hover:bg-transparent w-fit p-0"
+									className="rounded hover:bg-transparent hover:text-accent w-fit p-0"
 									onClick={copyLobbyId}
 								>
 									<Copy className="w-5" />
@@ -274,12 +274,12 @@ const Lobby: React.FC = () => {
 																/>
 															)}
 															{player.socketId === socket?.id && (
-																<User className="w-4 flex-shrink-0 text-primary fill-primary" />
+																<User className="w-4 flex-shrink-0 text-accent fill-accent" />
 															)}
 															<p
 																className={`text-lg font-bold truncate ${
 																	player.socketId === socket?.id
-																		? "text-primary"
+																		? "text-accent"
 																		: ""
 																}`}
 															>
@@ -294,7 +294,7 @@ const Lobby: React.FC = () => {
 								</ul>
 							</div>
 						</div>
-						<div className="bg-card border rounded px-6 py-4 w-full h-fit flex flex-col gap-4">
+						<div className="bg-card border rounded p-6 w-full h-fit flex flex-col gap-4">
 							{lobbyId && !games[lobbyId]?.isActive && (
 								<>
 									{isCurrentPlayerHost() ? (
@@ -340,7 +340,7 @@ const Lobby: React.FC = () => {
 
 									<Button
 										variant="outline"
-										className="rounded flex gap-2"
+										className="rounded flex gap-2 "
 										onClick={leaveLobby}
 									>
 										<LogOut className="w-4" />

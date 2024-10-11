@@ -81,7 +81,7 @@ const Home: React.FC = () => {
 	return (
 		<main className="px-6">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 mt-16">
-				<div className="bg-card border rounded px-6 py-4 w-full h-fit flex flex-col gap-3">
+				<div className="bg-card border rounded p-6 w-full h-fit flex flex-col gap-3">
 					{error && <p className="text-red-500">{error}</p>}
 					<Input
 						type="text"
@@ -107,9 +107,9 @@ const Home: React.FC = () => {
 						/>
 						<Button
 							disabled={nickname === "" || lobbyId === ""}
-							className={`rounded text-white bg-secondary hover:bg-secondary/50`}
+							className={`rounded text-white`}
 							onClick={joinLobby}
-							variant="ghost"
+							variant="outline"
 						>
 							Join lobby
 						</Button>
@@ -121,30 +121,26 @@ const Home: React.FC = () => {
 							<AccordionTrigger className="text-lg">
 								What are the rules ?
 							</AccordionTrigger>
-							<AccordionContent className="text-lg">
-								Each player rolls a random number between two values. The first
-								player to play has to roll a number between 1 and a value set by
-								the game host. The next player has to roll a number between 1
-								and the number the previous player rolled, and so on... The
-								first player to hit 1 loses.
-								<br />
-								<br />
-								Example:
-								<br />
-								Default value is 100.
-								<br />
-								Player1 rolls between 1 and 100 and obtains 42.
-								<br />
-								Player2 rolls between 1 and 42 and obtains 33.
-								<br />
-								Player3 rolls between 1 and 33 and obtains 12
-								<br />
-								Player4 rolls between 1 and 12 and obtains 8.
-								<br />
-								Player5 rolls between 1 and 8 and obtains 1.
-								<br />
-								<br />
-								Player5 loses.
+							<AccordionContent className="text-lg flex flex-col gap-6">
+								<div>
+									<p>
+										Each player rolls a random number between two values. The
+										first player to play has to roll a number between 1 and a
+										value set by the game host. The next player has to roll a
+										number between 1 and the number the previous player rolled,
+										and so on... The first player to hit 1 loses.
+									</p>
+								</div>
+								<div className="flex flex-col gap-2 text-sm">
+									<p>Example:</p>
+									<p>Default value is 100.</p>
+									<p>Player1 rolls between 1 and 100 and obtains 42.</p>
+									<p>Player2 rolls between 1 and 42 and obtains 33.</p>
+									<p>Player3 rolls between 1 and 33 and obtains 12</p>
+									<p>Player4 rolls between 1 and 12 and obtains 8.</p>
+									<p>Player5 rolls between 1 and 8 and obtains 1.</p>
+									<p>Player5 loses.</p>
+								</div>
 							</AccordionContent>
 						</AccordionItem>
 					</Accordion>
