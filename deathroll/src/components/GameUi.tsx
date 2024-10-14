@@ -193,9 +193,7 @@ const GameUi: React.FC<GameUiProps> = ({
 					disabled={!isMyTurn || isAnimating || gameOver}
 				>
 					<span
-						className={`text-primary text-3xl ${
-							!isMyTurn || isAnimating || gameOver ? "opacity-50" : ""
-						}`}
+						className="text-3xl"
 					>
 						Roll !
 					</span>
