@@ -314,7 +314,7 @@ const Lobby: React.FC = () => {
 											</div>
 										</>
 									) : (
-										<div className="text-gray-500 text-xl">
+										<div className="text-gray-500 text-lg">
 											Waiting for host to start game{dots}
 										</div>
 									)}
