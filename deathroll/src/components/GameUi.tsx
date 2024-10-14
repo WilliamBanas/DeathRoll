@@ -1,13 +1,6 @@
+import { Dices } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
 import { Socket } from "socket.io-client";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 
 interface Player {
 	host: boolean;
@@ -167,68 +160,55 @@ const GameUi: React.FC<GameUiProps> = ({
 
 	return (
 		<main className="px-6 my-16">
-			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
-				<div className="bg-primary/10 rounded px-6 py-4 w-full flex items-center justify-center">
-					<div className="text-2xl font-bold w-full">
-						{isMyTurn
-							? (<p className="flex justify-center items-center">It&apos;s your turn !</p>)
-							: (
-								<p className="flex justify-center items-center">
-									<span className="truncate max-w-[70%]">{currentPlayer?.nickname}</span>
-									<span className="whitespace-nowrap">&apos;s turn</span>
-								</p>
-							)}
-					</div>
+			{gameOver ? (
+				<div className="flex flex-col items-center justify-center mt-32">
+					<p className="text-5xl font-bold">
+						{dialogMessage} lost !
+					</p>
 				</div>
-				<div className="flex flex-col items-center justify-center w-full h-96">
-					<div>
-						<p className="text-7xl text-white">
-							1 - <span className="text-primary">{formatNumber(animatedNumber)}</span>
-						</p>
+			) : (
+				<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
+					<div className="rounded px-6 py-4 w-full flex items-center justify-center">
+						<div className="text-2xl font-bold w-full">
+							{isMyTurn
+								? (<p className="flex justify-center items-center">It&apos;s your turn !</p>)
+								: (
+									<p className="flex justify-center items-center">
+										<span className="truncate max-w-[70%]">{currentPlayer?.nickname}</span>
+										<span className="whitespace-nowrap">&apos;s turn</span>
+									</p>
+								)}
+						</div>
 					</div>
-				</div>
-				<Button
-					onClick={handlePlayerAction}
-					className="rounded mb-4 w-32 h-20"
-					disabled={!isMyTurn || isAnimating || gameOver}
-				>
-					<span
-						className="text-3xl"
+					<div className="flex flex-col items-center justify-center w-full h-96">
+						<div>
+							<p className="text-7xl text-white">
+								1 - <span className="text-primary">{formatNumber(animatedNumber)}</span>
+							</p>
+						</div>
+					</div>
+					<button
+						onClick={handlePlayerAction}
+						className="btn btn-lg"
+						disabled={!isMyTurn || isAnimating || gameOver}
 					>
-						Roll !
-					</span>
-				</Button>
-			</div>
+          <Dices  />
+						<span
+							className="text-2xl"
+						>
+							Roll !
+						</span>
+					</button>
+				</div>
+			)}
 			{isHost && (
-					<Button
+					<button
 						onClick={handleStopGame}
-						className="mt-6 bg-red-500 hover:bg-red-600 text-white"
+						className="btn"
 					>
 						Retour au lobby
-					</Button>
+					</button>
 				)}
-
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogContent className="w-4/5 sm:max-w-[425px] rounded border-none">
-					<DialogHeader>
-						<DialogTitle className="text-2xl text-center mb-4">
-							Game Over
-						</DialogTitle>
-						<DialogDescription className="max-w-full text-2xl font-semibold text-center">
-							{dialogMessage === "You" ? (
-								<span>You lost !</span>
-							) : (
-								<div className="flex justify-center items-center w-full overflow-hidden">
-									<div className="flex-shrink min-w-0 mr-1">
-										<span className="block truncate">{dialogMessage}</span>
-									</div>
-									<span className="flex-shrink-0">lost !</span>
-								</div>
-							)}
-						</DialogDescription>
-					</DialogHeader>
-				</DialogContent>
-			</Dialog>
 		</main>
 	);
 };

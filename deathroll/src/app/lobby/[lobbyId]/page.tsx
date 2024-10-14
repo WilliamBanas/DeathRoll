@@ -4,16 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Copy, Crown, LogOut, User } from "lucide-react";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 
 interface Player {
 	host: boolean;
@@ -225,7 +216,7 @@ const Lobby: React.FC = () => {
 			<div className="flex flex-col items-center">
 				<div className="text-red-500 mb-4">{error}</div>
 				<Link href="/">
-					<Button>Return to Home</Button>
+					<button>Return to Home</button>
 				</Link>
 			</div>
 		);
@@ -246,15 +237,14 @@ const Lobby: React.FC = () => {
 				<main className="px-6 my-16">
 					<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 ">
 						<div className="flex flex-col gap-4 w-full">
-							<div className="bg-background border-2 rounded px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
+							<div className="border rounded-md px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 								<p className="text-2xl">{lobbyId}</p>
-								<Button
-									variant="ghost"
-									className="rounded hover:bg-transparent hover:text-primary/50 w-fit p-0"
+								<button
+									className="btn w-fit"
 									onClick={copyLobbyId}
 								>
 									<Copy className="w-5" />
-								</Button>
+								</button>
 							</div>
 							<div className="flex flex-col gap-2 rounded">
 								<h2 className="text-2xl w-full p-2">Players</h2>
@@ -263,7 +253,7 @@ const Lobby: React.FC = () => {
 										const player = lobbyData?.players[index];
 										return (
 											<li className="flex items-center gap-2 h-12" key={index}>
-												<div className="w-full h-full border bg-accent rounded flex items-center gap-2 px-2 overflow-hidden">
+												<div className="bg-neutral w-full h-full rounded-md flex items-center gap-2 px-2 overflow-hidden">
 													{player ? (
 														<>
 															{player.host && (
@@ -279,7 +269,7 @@ const Lobby: React.FC = () => {
 															<p
 																className={`text-lg font-bold truncate ${
 																	player.socketId === socket?.id
-																		? "text-primary"
+																		? "text-green-500"
 																		: ""
 																}`}
 															>
@@ -294,42 +284,33 @@ const Lobby: React.FC = () => {
 								</ul>
 							</div>
 						</div>
-						<div className="bg-card border-2 rounded p-6 w-full h-fit flex flex-col gap-4">
+						<div className="border rounded-md p-6 w-full h-fit flex flex-col gap-4">
 							{lobbyId && !games[lobbyId]?.isActive && (
 								<>
 									{isCurrentPlayerHost() ? (
 										<>
 											<div className="flex items-center justify-between gap-4">
-												<Label className="text-md w-fit">Default value :</Label>
-												<Select
+												<label className="text-md w-fit">Default value :</label>
+												<select
+													className="select select-bordered"
 													value={startingNumber.toString()}
-													onValueChange={(value) =>
-														setStartingNumber(Number(value))
-													}
+													onChange={(e) => setStartingNumber(Number(e.target.value))}
 												>
-													<SelectTrigger className="w-32 rounded ">
-														<SelectValue placeholder="Select starting number" />
-													</SelectTrigger>
-													<SelectContent className="bg-background rounded">
-														{Array.from(
-															{ length: 100 },
-															(_, i) => (i + 1) * 100
-														).map((value) => (
-															<SelectItem key={value} value={value.toString()}>
-																{value}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
+													{Array.from({ length: 100 }, (_, i) => (i + 1) * 100).map((value) => (
+														<option key={value} value={value.toString()}>
+															{value}
+														</option>
+													))}
+												</select>
 											</div>
 											<div>
-												<Button
-													className="rounded w-full"
+												<button
+													className="btn w-full"
 													onClick={startGame}
 													disabled={!canStartGame}
 												>
 													Start Game
-												</Button>
+												</button>
 											</div>
 										</>
 									) : (
@@ -338,14 +319,13 @@ const Lobby: React.FC = () => {
 										</div>
 									)}
 
-									<Button
-										variant="outline"
-										className="rounded flex gap-2 "
+									<button
+										className="btn flex gap-2 "
 										onClick={leaveLobby}
 									>
 										<LogOut className="w-4" />
 										<p>Leave</p>
-									</Button>
+									</button>
 								</>
 							)}
 						</div>

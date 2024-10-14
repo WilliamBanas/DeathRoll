@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-background min-h-dvh">
+    <html lang="en" className="bg min-h-dvh">
       <body
         className={`${helvetica.variable} sans-serif antialiased`}
       >

@@ -2,14 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { useSocket } from "../contexts/socket";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-	Accordion,
-	AccordionItem,
-	AccordionTrigger,
-	AccordionContent,
-} from "@/components/ui/accordion";
 
 const Home: React.FC = () => {
 	const socket = useSocket();
@@ -81,47 +73,46 @@ const Home: React.FC = () => {
 	return (
 		<main className="px-6 my-16">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
-				<div className="bg-card border-2 rounded p-6 w-full h-fit flex flex-col gap-3">
+				<div className="border rounded-md p-6 w-full h-fit flex flex-col gap-3">
 					{error && <p className="text-red-500">{error}</p>}
-					<Input
+					<input
 						type="text"
 						placeholder="Enter Nickname"
 						value={nickname}
 						onChange={(e) => setNickname(e.target.value)}
-						className="rounded"
+						className="input input-bordered"
 					/>
-					<Button
+					<button
 						disabled={nickname === ""}
-						className={`rounded`}
+						className="btn"
 						onClick={createLobby}
 					>
-						Create lobby
-					</Button>
-					<div className="flex gap-3">
-						<Input
+						Host game
+					</button>
+					<div className="flex justify-between gap-3">
+						<input
 							type="text"
-							placeholder="Enter Lobby ID"
+							placeholder="Enter Lobby Id"
 							value={lobbyId}
 							onChange={handleLobbyIdChange}
-							className="rounded"
+							className="input input-bordered w-1/2"
 						/>
-						<Button
+						<button
 							disabled={nickname === "" || lobbyId === ""}
-							className={`rounded text-white`}
+							className="btn w-1/2"
 							onClick={joinLobby}
-							variant="outline"
 						>
-							Join lobby
-						</Button>
+							Join game
+						</button>
 					</div>
 				</div>
-				<div className="bg-card border-2 rounded w-full px-6 h-fit">
-					<Accordion type="single" collapsible>
-						<AccordionItem value="item-1">
-							<AccordionTrigger className="text-lg">
-								What are the rules ?
-							</AccordionTrigger>
-							<AccordionContent className="text-lg flex flex-col gap-6">
+				<div className="border rounded-md w-full px-6 h-fit">
+					<div className="collapse collapse-arrow">
+						<input type="checkbox" />
+						<div className="collapse-title">
+							What are the rules ?
+						</div>
+						<div className="collapse-content flex flex-col gap-6">
 								<div>
 									<p>
 										Each player rolls a random number between two values. The
@@ -141,9 +132,18 @@ const Home: React.FC = () => {
 									<p>Player5 rolls between 1 and 8 and obtains 1.</p>
 									<p>Player5 loses.</p>
 								</div>
-							</AccordionContent>
-						</AccordionItem>
-					</Accordion>
+							</div>
+					</div>
+
+					<div className="collapse collapse-arrow">
+						<input type="checkbox" />
+						<div className="collapse-title">
+							Report a bug
+						</div>
+						<div className="collapse-content">
+							<p>hello world</p>
+						</div>
+					</div>
 				</div>
 			</div>
 		</main>
