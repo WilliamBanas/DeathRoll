@@ -246,11 +246,11 @@ const Lobby: React.FC = () => {
 				<main className="px-6 my-16">
 					<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 ">
 						<div className="flex flex-col gap-4 w-full">
-							<div className="bg-primary/10 rounded px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
+							<div className="bg-background border-2 rounded px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 								<p className="text-2xl">{lobbyId}</p>
 								<Button
 									variant="ghost"
-									className="rounded hover:bg-transparent hover:text-accent w-fit p-0"
+									className="rounded hover:bg-transparent hover:text-primary/50 w-fit p-0"
 									onClick={copyLobbyId}
 								>
 									<Copy className="w-5" />
@@ -263,7 +263,7 @@ const Lobby: React.FC = () => {
 										const player = lobbyData?.players[index];
 										return (
 											<li className="flex items-center gap-2 h-12" key={index}>
-												<div className="w-full h-full bg-card rounded flex items-center gap-2 px-2 overflow-hidden">
+												<div className="w-full h-full border bg-accent rounded flex items-center gap-2 px-2 overflow-hidden">
 													{player ? (
 														<>
 															{player.host && (
@@ -274,12 +274,12 @@ const Lobby: React.FC = () => {
 																/>
 															)}
 															{player.socketId === socket?.id && (
-																<User className="w-4 flex-shrink-0 text-accent fill-accent" />
+																<User className="w-4 flex-shrink-0 text-green-500 fill-green-500" />
 															)}
 															<p
 																className={`text-lg font-bold truncate ${
 																	player.socketId === socket?.id
-																		? "text-accent"
+																		? "text-primary"
 																		: ""
 																}`}
 															>
@@ -294,7 +294,7 @@ const Lobby: React.FC = () => {
 								</ul>
 							</div>
 						</div>
-						<div className="bg-card border rounded p-6 w-full h-fit flex flex-col gap-4">
+						<div className="bg-card border-2 rounded p-6 w-full h-fit flex flex-col gap-4">
 							{lobbyId && !games[lobbyId]?.isActive && (
 								<>
 									{isCurrentPlayerHost() ? (
