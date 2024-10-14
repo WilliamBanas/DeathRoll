@@ -4,11 +4,11 @@ import { SocketProvider } from "@/contexts/socket";
 import Header from "@/components/Header";
 import "./globals.css";
 
-const helvetica = localFont({
-  src: "./fonts/Helvetica.woff",
-  variable: "--font-helvetica",
-  weight: "100 900",
-});
+// const helvetica = localFont({
+//   src: "./fonts/Helvetica.woff",
+//   variable: "--font-helvetica",
+//   weight: "100 900",
+// });
 
 export const metadata: Metadata = {
   title: "Deathroll",
@@ -21,9 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg min-h-dvh">
+    <html lang="en" className="min-h-dvh">
       <body
-        className={`${helvetica.variable} sans-serif antialiased`}
       >
         <SocketProvider>
           <Header />
