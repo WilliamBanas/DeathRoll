@@ -73,14 +73,14 @@ const Home: React.FC = () => {
 	return (
 		<main className="px-6 my-16">
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
-				<div className="border rounded-md p-6 w-full h-fit flex flex-col gap-3">
+				<div className="border border-secondary  p-6 w-full h-fit flex flex-col gap-3">
 					{error && <p className="text-red-500">{error}</p>}
 					<input
 						type="text"
 						placeholder="Enter Nickname"
 						value={nickname}
 						onChange={(e) => setNickname(e.target.value)}
-						className="input input-bordered"
+						className="input input-bordered text-sm"
 					/>
 					<button
 						disabled={nickname === ""}
@@ -89,13 +89,13 @@ const Home: React.FC = () => {
 					>
 						Host game
 					</button>
-					<div className="flex justify-between gap-3">
+					<div className="flex gap-3">
 						<input
 							type="text"
 							placeholder="Enter Lobby Id"
 							value={lobbyId}
 							onChange={handleLobbyIdChange}
-							className="input input-bordered w-1/2"
+							className="input input-bordered text-sm w-1/2"
 						/>
 						<button
 							disabled={nickname === "" || lobbyId === ""}
@@ -106,7 +106,7 @@ const Home: React.FC = () => {
 						</button>
 					</div>
 				</div>
-				<div className="border rounded-md w-full px-6 h-fit">
+				<div className="border border-secondary  w-full px-6 h-fit">
 					<div className="collapse collapse-arrow">
 						<input type="checkbox" />
 						<div className="collapse-title">

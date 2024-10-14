@@ -21,8 +21,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="min-h-dvh">
+    <html lang="en" className="min-h-dvh" data-theme="black">
       <body
+        
       >
         <SocketProvider>
           <Header />

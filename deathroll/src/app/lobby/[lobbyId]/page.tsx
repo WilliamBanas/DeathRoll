@@ -237,23 +237,23 @@ const Lobby: React.FC = () => {
 				<main className="px-6 my-16">
 					<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 ">
 						<div className="flex flex-col gap-4 w-full">
-							<div className="border rounded-md px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
+							<div className="bg-base-200 px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 								<p className="text-2xl">{lobbyId}</p>
 								<button
-									className="btn w-fit"
+									className="btn bg-base-200 border-none w-fit"
 									onClick={copyLobbyId}
 								>
 									<Copy className="w-5" />
 								</button>
 							</div>
-							<div className="flex flex-col gap-2 rounded">
+							<div className="flex flex-col gap-2">
 								<h2 className="text-2xl w-full p-2">Players</h2>
 								<ul className="h-fit grid grid-cols-2 gap-3">
 									{Array.from({ length: 10 }).map((_, index) => {
 										const player = lobbyData?.players[index];
 										return (
 											<li className="flex items-center gap-2 h-12" key={index}>
-												<div className="bg-neutral w-full h-full rounded-md flex items-center gap-2 px-2 overflow-hidden">
+												<div className="bg-base-200 w-full h-full flex items-center gap-2 px-2 overflow-hidden">
 													{player ? (
 														<>
 															{player.host && (
@@ -284,7 +284,7 @@ const Lobby: React.FC = () => {
 								</ul>
 							</div>
 						</div>
-						<div className="border rounded-md p-6 w-full h-fit flex flex-col gap-4">
+						<div className="border border-secondary p-6 w-full h-fit flex flex-col gap-4">
 							{lobbyId && !games[lobbyId]?.isActive && (
 								<>
 									{isCurrentPlayerHost() ? (
