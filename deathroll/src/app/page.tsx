@@ -2,13 +2,15 @@
 import React, { useEffect, useState } from "react";
 import { useSocket } from "../contexts/socket";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from 'next/navigation';
 
 const Home: React.FC = () => {
 	const socket = useSocket();
 	const router = useRouter();
-	const [lobbyId, setLobbyId] = useState("");
 	const [nickname, setNickname] = useState("");
 	const [error, setError] = useState<string | null>(null);
+	const searchParams = useSearchParams();
+	const [sharedLobbyId, setSharedLobbyId] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (socket) {
@@ -18,7 +20,6 @@ const Home: React.FC = () => {
 				console.log(`Lobby created with ID: ${lobbyId}`);
 				console.log(`Player data:`, player);
 				router.push(`/lobby/${lobbyId}`);
-				navigator.clipboard.writeText(lobbyId);
 			});
 
 			socket.on("lobbyJoined", ({ lobbyId, player }) => {
@@ -44,6 +45,13 @@ const Home: React.FC = () => {
 		};
 	}, [socket, router]);
 
+	useEffect(() => {
+		const sharedId = searchParams.get('lobbyId');
+		if (sharedId) {
+			setSharedLobbyId(sharedId);
+		}
+	}, [searchParams]);
+
 	const createLobby = () => {
 		if (nickname && socket) {
 			console.log("Emitting createLobby event with nickname:", nickname);
@@ -54,20 +62,16 @@ const Home: React.FC = () => {
 	};
 
 	const joinLobby = () => {
-		if (nickname && lobbyId && socket) {
+		if (nickname && sharedLobbyId && socket) {
 			console.log(
 				"Emitting joinLobby event with nickname and roomId:",
 				nickname,
-				lobbyId
+				sharedLobbyId
 			);
-			socket.emit("joinLobby", { nickname, lobbyId });
+			socket.emit("joinLobby", { nickname, lobbyId: sharedLobbyId });
 		} else {
-			setError("Please enter a nickname and lobby ID before joining.");
+			setError("Please enter a nickname before joining.");
 		}
-	};
-
-	const handleLobbyIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setLobbyId(e.target.value.toUpperCase());
 	};
 
 	return (
@@ -82,29 +86,23 @@ const Home: React.FC = () => {
 						onChange={(e) => setNickname(e.target.value)}
 						className="input input-bordered text-sm"
 					/>
-					<button
-						disabled={nickname === ""}
-						className="btn"
-						onClick={createLobby}
-					>
-						Host game
-					</button>
-					<div className="flex gap-3">
-						<input
-							type="text"
-							placeholder="Enter Lobby Id"
-							value={lobbyId}
-							onChange={handleLobbyIdChange}
-							className="input input-bordered text-sm w-1/2"
-						/>
+					{!sharedLobbyId ? (
 						<button
-							disabled={nickname === "" || lobbyId === ""}
-							className="btn w-1/2"
+							disabled={nickname === ""}
+							className="btn"
+							onClick={createLobby}
+						>
+							Host game
+						</button>
+					) : (
+						<button
+							disabled={nickname === ""}
+							className="btn"
 							onClick={joinLobby}
 						>
 							Join game
 						</button>
-					</div>
+					)}
 				</div>
 				<div className="border border-secondary  w-full px-6 h-fit">
 					<div className="collapse collapse-arrow">

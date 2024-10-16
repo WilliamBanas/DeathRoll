@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
@@ -43,10 +43,12 @@ const Lobby: React.FC = () => {
 	const [gameStartingNumber, setGameStartingNumber] = useState<number | null>(
 		null
 	);
+	const pathname = usePathname();
 
-	const copyLobbyId = () => {
+	const copyLobbyLink = () => {
 		if (lobbyId) {
-			navigator.clipboard.writeText(lobbyId);
+			const link = `${window.location.origin}/?lobbyId=${lobbyId}`;
+			navigator.clipboard.writeText(link);
 		}
 	};
 
@@ -241,7 +243,7 @@ const Lobby: React.FC = () => {
 								<p className="text-2xl">{lobbyId}</p>
 								<button
 									className="btn bg-base-200 border-none w-fit"
-									onClick={copyLobbyId}
+									onClick={copyLobbyLink}
 								>
 									<Copy className="w-5" />
 								</button>
