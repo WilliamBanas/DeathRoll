@@ -1,15 +1,27 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useSocket } from "../contexts/socket";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from 'next/navigation';
+
+const LobbyIdHandler: React.FC<{ setSharedLobbyId: (id: string | null) => void }> = ({ setSharedLobbyId }) => {
+	const searchParams = useSearchParams();
+
+	useEffect(() => {
+		const sharedId = searchParams.get('lobbyId');
+		if (sharedId) {
+			setSharedLobbyId(sharedId);
+		}
+	}, [searchParams, setSharedLobbyId]);
+
+	return null;
+};
 
 const Home: React.FC = () => {
 	const socket = useSocket();
 	const router = useRouter();
 	const [nickname, setNickname] = useState("");
 	const [error, setError] = useState<string | null>(null);
-	const searchParams = useSearchParams();
 	const [sharedLobbyId, setSharedLobbyId] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -45,13 +57,6 @@ const Home: React.FC = () => {
 		};
 	}, [socket, router]);
 
-	useEffect(() => {
-		const sharedId = searchParams.get('lobbyId');
-		if (sharedId) {
-			setSharedLobbyId(sharedId);
-		}
-	}, [searchParams]);
-
 	const createLobby = () => {
 		if (nickname && socket) {
 			console.log("Emitting createLobby event with nickname:", nickname);
@@ -76,6 +81,9 @@ const Home: React.FC = () => {
 
 	return (
 		<main className="px-6 my-16">
+			<Suspense fallback={<div>Loading...</div>}>
+				<LobbyIdHandler setSharedLobbyId={setSharedLobbyId} />
+			</Suspense>
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
 				<div className="border border-secondary  p-6 w-full h-fit flex flex-col gap-3">
 					{error && <p className="text-red-500">{error}</p>}
