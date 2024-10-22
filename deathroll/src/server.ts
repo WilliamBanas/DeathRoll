@@ -24,6 +24,7 @@ interface Player {
 	socketId: string;
 	turn: boolean;
 	loser: boolean;
+	avatar: number; 
 }
 
 interface Lobby {
@@ -70,8 +71,8 @@ app.prepare().then(() => {
 	io.on("connection", (socket) => {
 		console.log(`User connected: connection id: ${socket.id}`);
 
-		socket.on("createLobby", (nickname: string) => {
-			console.log(`Emitting createLobby event with nickname: ${nickname}`);
+		socket.on("createLobby", ({ nickname, avatar }: { nickname: string, avatar: number }) => {
+			console.log(`Emitting createLobby event with nickname: ${nickname} and avatar: ${avatar}`);
 			const lobbyId = createLobbyId();
 
 			const player: Player = {
@@ -81,6 +82,7 @@ app.prepare().then(() => {
 				socketId: socket.id,
 				turn: false,
 				loser: false,
+				avatar,
 			};
 
 			const newLobby: Lobby = {
@@ -99,13 +101,13 @@ app.prepare().then(() => {
 			socket.emit("lobbyCreated", { lobbyId, player });
 		});
 
-		socket.on("joinLobby", ({ nickname, lobbyId }) => {
+		socket.on("joinLobby", ({ nickname, lobbyId, avatar }: { nickname: string, lobbyId: string, avatar: number }) => {
 			const lobby = lobbies.find((lobby) => lobby.lobbyId === lobbyId);
 			if (lobby) {
 				if (lobby.players.length >= lobby.maxPlayers) {
 					socket.emit(
-						"lobbyError",
-						"Le lobby est plein. Impossible de rejoindre."
+							"lobbyError",
+							"Le lobby est plein. Impossible de rejoindre."
 					);
 					return;
 				}
@@ -129,6 +131,7 @@ app.prepare().then(() => {
 					socketId: socket.id,
 					turn: false,
 					loser: false,
+					avatar,
 				};
 
 				lobby.players.push(player);
@@ -205,6 +208,7 @@ app.prepare().then(() => {
 					players: lobby.players.map((player) => ({
 						nickname: player.nickname,
 						socketId: player.socketId,
+						avatar: player.avatar, // Include avatar in the player data
 					})),
 				});
 			}

@@ -4,7 +4,14 @@ import { useRouter, useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
-import { Copy, Crown, LogOut, User } from "lucide-react";
+import { Copy, Crown, LogOut } from "lucide-react";
+import Image from "next/image";
+import avatar1 from "../../public/assets/img/avatar1.png";
+import avatar2 from "../../public/assets/img/avatar2.png";
+import avatar3 from "../../public/assets/img/avatar3.png";
+import avatar4 from "../../public/assets/img/avatar4.png";
+import avatar5 from "../../public/assets/img/avatar5.png";
+import avatar6 from "../../public/assets/img/avatar6.png";
 
 interface Player {
 	host: boolean;
@@ -13,6 +20,7 @@ interface Player {
 	socketId: string;
 	turn: boolean;
 	loser: boolean;
+	avatar: number;
 }
 
 interface Lobby {
@@ -51,6 +59,8 @@ const Lobby: React.FC = () => {
 			navigator.clipboard.writeText(link);
 		}
 	};
+
+	const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
 
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -258,15 +268,19 @@ const Lobby: React.FC = () => {
 												<div className="bg-base-200 rounded-md w-full h-full flex items-center gap-2 px-2 overflow-hidden">
 													{player ? (
 														<>
+															<Image
+																src={avatars[player.avatar - 1]}
+																alt={`Avatar ${player.avatar}`}
+																width={24}
+																height={24}
+																className="rounded-full"
+															/>
 															{player.host && (
 																<Crown
 																	className={`w-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
 																	fill="currentColor"
 																	stroke="currentColor"
 																/>
-															)}
-															{player.socketId === socket?.id && (
-																<User className="w-4 flex-shrink-0 text-primary fill-primary" />
 															)}
 															<p
 																className={`text-lg font-bold truncate ${

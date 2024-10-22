@@ -2,13 +2,22 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useSocket } from "../contexts/socket";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import avatar1 from "../app/public/assets/img/avatar1.png";
+import avatar2 from "../app/public/assets/img/avatar2.png";
+import avatar3 from "../app/public/assets/img/avatar3.png";
+import avatar4 from "../app/public/assets/img/avatar4.png";
+import avatar5 from "../app/public/assets/img/avatar5.png";
+import avatar6 from "../app/public/assets/img/avatar6.png";
 
-const LobbyIdHandler: React.FC<{ setSharedLobbyId: (id: string | null) => void }> = ({ setSharedLobbyId }) => {
+const LobbyIdHandler: React.FC<{
+	setSharedLobbyId: (id: string | null) => void;
+}> = ({ setSharedLobbyId }) => {
 	const searchParams = useSearchParams();
 
 	useEffect(() => {
-		const sharedId = searchParams.get('lobbyId');
+		const sharedId = searchParams.get("lobbyId");
 		if (sharedId) {
 			setSharedLobbyId(sharedId);
 		}
@@ -23,6 +32,15 @@ const Home: React.FC = () => {
 	const [nickname, setNickname] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [sharedLobbyId, setSharedLobbyId] = useState<string | null>(null);
+	const [selectedAvatar, setSelectedAvatar] = useState<number>(1);
+	const avatars = [
+		{ icon: avatar1, id: 1 },
+		{ icon: avatar2, id: 2 },
+		{ icon: avatar3, id: 3 },
+		{ icon: avatar4, id: 4 },
+		{ icon: avatar5, id: 5 },
+		{ icon: avatar6, id: 6 },
+	];
 
 	useEffect(() => {
 		if (socket) {
@@ -59,8 +77,12 @@ const Home: React.FC = () => {
 
 	const createLobby = () => {
 		if (nickname && socket) {
-			console.log("Emitting createLobby event with nickname:", nickname);
-			socket.emit("createLobby", nickname);
+			console.log(
+				"Emitting createLobby event with nickname and avatar:",
+				nickname,
+				selectedAvatar
+			);
+			socket.emit("createLobby", { nickname, avatar: selectedAvatar });
 		} else {
 			setError("Please enter a nickname before creating a lobby.");
 		}
@@ -69,11 +91,16 @@ const Home: React.FC = () => {
 	const joinLobby = () => {
 		if (nickname && sharedLobbyId && socket) {
 			console.log(
-				"Emitting joinLobby event with nickname and roomId:",
+				"Emitting joinLobby event with nickname, roomId, and avatar:",
 				nickname,
-				sharedLobbyId
+				sharedLobbyId,
+				selectedAvatar
 			);
-			socket.emit("joinLobby", { nickname, lobbyId: sharedLobbyId });
+			socket.emit("joinLobby", {
+				nickname,
+				lobbyId: sharedLobbyId,
+				avatar: selectedAvatar,
+			});
 		} else {
 			setError("Please enter a nickname before joining.");
 		}
@@ -86,6 +113,35 @@ const Home: React.FC = () => {
 			</Suspense>
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
 				<div className="bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-3">
+					<div className="carousel w-full">
+						{avatars.map((avatar) => (
+							<div
+								key={avatar.id}
+								id={`avatar${avatar.id}`}
+								className="carousel-item w-full"
+							>
+								<Image
+									src={avatar.icon}
+									alt={`Avatar ${avatar.id}`}
+									className="w-full h-full"
+								/>
+							</div>
+						))}
+					</div>
+					<div className="flex justify-center w-full py-2 gap-2">
+						{avatars.map((avatar) => (
+							<a
+								key={avatar.id}
+								href={`#avatar${avatar.id}`}
+								className={`btn btn-xs ${
+									selectedAvatar === avatar.id ? "btn-secondary" : ""
+								}`}
+								onClick={() => setSelectedAvatar(avatar.id)}
+							>
+								{avatar.id}
+							</a>
+						))}
+					</div>
 					{error && <p className="text-red-500">{error}</p>}
 					<input
 						type="text"
@@ -115,37 +171,33 @@ const Home: React.FC = () => {
 				<div className="flex flex-col gap-3 w-full h-fit">
 					<div className="bg-base-200 collapse collapse-arrow rounded-md">
 						<input type="checkbox" />
-						<div className=" collapse-title">
-							What are the rules ?
-						</div>
+						<div className=" collapse-title">What are the rules ?</div>
 						<div className="collapse-content flex flex-col gap-6">
-								<div>
-									<p>
-										Each player rolls a random number between two values. The
-										first player to play has to roll a number between 1 and a
-										value set by the game host. The next player has to roll a
-										number between 1 and the number the previous player rolled,
-										and so on... The first player to hit 1 loses.
-									</p>
-								</div>
-								<div className="flex flex-col gap-2 text-sm">
-									<p>Example:</p>
-									<p>Default value is 100.</p>
-									<p>Player1 rolls between 1 and 100 and obtains 42.</p>
-									<p>Player2 rolls between 1 and 42 and obtains 33.</p>
-									<p>Player3 rolls between 1 and 33 and obtains 12</p>
-									<p>Player4 rolls between 1 and 12 and obtains 8.</p>
-									<p>Player5 rolls between 1 and 8 and obtains 1.</p>
-									<p>Player5 loses.</p>
-								</div>
+							<div>
+								<p>
+									Each player rolls a random number between two values. The
+									first player to play has to roll a number between 1 and a
+									value set by the game host. The next player has to roll a
+									number between 1 and the number the previous player rolled,
+									and so on... The first player to hit 1 loses.
+								</p>
 							</div>
+							<div className="flex flex-col gap-2 text-sm">
+								<p>Example:</p>
+								<p>Default value is 100.</p>
+								<p>Player1 rolls between 1 and 100 and obtains 42.</p>
+								<p>Player2 rolls between 1 and 42 and obtains 33.</p>
+								<p>Player3 rolls between 1 and 33 and obtains 12</p>
+								<p>Player4 rolls between 1 and 12 and obtains 8.</p>
+								<p>Player5 rolls between 1 and 8 and obtains 1.</p>
+								<p>Player5 loses.</p>
+							</div>
+						</div>
 					</div>
 
 					<div className="bg-base-200 collapse collapse-arrow rounded-md">
 						<input type="checkbox" />
-						<div className="collapse-title">
-							Report a bug
-						</div>
+						<div className="collapse-title">Report a bug</div>
 						<div className="collapse-content">
 							<p>hello world</p>
 						</div>
