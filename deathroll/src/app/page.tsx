@@ -85,7 +85,7 @@ const Home: React.FC = () => {
 				<LobbyIdHandler setSharedLobbyId={setSharedLobbyId} />
 			</Suspense>
 			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
-				<div className="border border-secondary  p-6 w-full h-fit flex flex-col gap-3">
+				<div className="bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-3">
 					{error && <p className="text-red-500">{error}</p>}
 					<input
 						type="text"
@@ -112,10 +112,10 @@ const Home: React.FC = () => {
 						</button>
 					)}
 				</div>
-				<div className="border border-secondary  w-full px-6 h-fit">
-					<div className="collapse collapse-arrow">
+				<div className="flex flex-col gap-3 w-full h-fit">
+					<div className="bg-base-200 collapse collapse-arrow rounded-md">
 						<input type="checkbox" />
-						<div className="collapse-title">
+						<div className=" collapse-title">
 							What are the rules ?
 						</div>
 						<div className="collapse-content flex flex-col gap-6">
@@ -141,7 +141,7 @@ const Home: React.FC = () => {
 							</div>
 					</div>
 
-					<div className="collapse collapse-arrow">
+					<div className="bg-base-200 collapse collapse-arrow rounded-md">
 						<input type="checkbox" />
 						<div className="collapse-title">
 							Report a bug

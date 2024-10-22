@@ -239,7 +239,7 @@ const Lobby: React.FC = () => {
 				<main className="px-6 my-16">
 					<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 ">
 						<div className="flex flex-col gap-4 w-full">
-							<div className="bg-base-200 px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
+							<div className="bg-base-200 rounded-md px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 								<p className="text-2xl">{lobbyId}</p>
 								<button
 									className="btn bg-base-200 border-none w-fit"
@@ -255,7 +255,7 @@ const Lobby: React.FC = () => {
 										const player = lobbyData?.players[index];
 										return (
 											<li className="flex items-center gap-2 h-12" key={index}>
-												<div className="bg-base-200 w-full h-full flex items-center gap-2 px-2 overflow-hidden">
+												<div className="bg-base-200 rounded-md w-full h-full flex items-center gap-2 px-2 overflow-hidden">
 													{player ? (
 														<>
 															{player.host && (
@@ -266,12 +266,12 @@ const Lobby: React.FC = () => {
 																/>
 															)}
 															{player.socketId === socket?.id && (
-																<User className="w-4 flex-shrink-0 text-green-500 fill-green-500" />
+																<User className="w-4 flex-shrink-0 text-primary fill-primary" />
 															)}
 															<p
 																className={`text-lg font-bold truncate ${
 																	player.socketId === socket?.id
-																		? "text-green-500"
+																		? "text-primary"
 																		: ""
 																}`}
 															>
@@ -286,7 +286,7 @@ const Lobby: React.FC = () => {
 								</ul>
 							</div>
 						</div>
-						<div className="border border-secondary p-6 w-full h-fit flex flex-col gap-4">
+						<div className="bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-4">
 							{lobbyId && !games[lobbyId]?.isActive && (
 								<>
 									{isCurrentPlayerHost() ? (
@@ -322,7 +322,7 @@ const Lobby: React.FC = () => {
 									)}
 
 									<button
-										className="btn flex gap-2 "
+										className="btn btn-outline flex gap-2 "
 										onClick={leaveLobby}
 									>
 										<LogOut className="w-4" />

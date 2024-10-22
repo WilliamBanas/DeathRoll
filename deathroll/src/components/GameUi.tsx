@@ -31,7 +31,7 @@ interface GameUiProps {
 	socket: Socket | null;
 	games: { [lobbyId: string]: Game };
 	stopGame: () => void;
-	startingNumber: number; // Ajoutez cette prop
+	startingNumber: number;
 }
 
 const GameUi: React.FC<GameUiProps> = ({
@@ -192,7 +192,7 @@ const GameUi: React.FC<GameUiProps> = ({
 						className="btn btn-lg"
 						disabled={!isMyTurn || isAnimating || gameOver}
 					>
-          <Dices  />
+          <Dices />
 						<span
 							className="text-2xl"
 						>
