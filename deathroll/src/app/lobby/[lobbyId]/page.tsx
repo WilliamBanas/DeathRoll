@@ -12,6 +12,8 @@ import avatar3 from "../../assets/img/avatar3.png";
 import avatar4 from "../../assets/img/avatar4.png";
 import avatar5 from "../../assets/img/avatar5.png";
 import avatar6 from "../../assets/img/avatar6.png";
+import avatar7 from "../../assets/img/avatar7.png";
+import avatar8 from "../../assets/img/avatar8.png";
 
 interface Player {
 	host: boolean;
@@ -60,7 +62,7 @@ const Lobby: React.FC = () => {
 		}
 	};
 
-	const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
+	const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6, avatar7, avatar8];
 
 	useEffect(() => {
 		const interval = setInterval(() => {

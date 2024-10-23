@@ -10,6 +10,8 @@ import avatar3 from "./assets/img/avatar3.png";
 import avatar4 from "./assets/img/avatar4.png";
 import avatar5 from "./assets/img/avatar5.png";
 import avatar6 from "./assets/img/avatar6.png";
+import avatar7 from "./assets/img/avatar7.png"; 
+import avatar8 from "./assets/img/avatar8.png";
 
 const LobbyIdHandler: React.FC<{
 	setSharedLobbyId: (id: string | null) => void;
@@ -40,6 +42,8 @@ const Home: React.FC = () => {
 		{ icon: avatar4, id: 4 },
 		{ icon: avatar5, id: 5 },
 		{ icon: avatar6, id: 6 },
+		{ icon: avatar7, id: 7 },
+		{ icon: avatar8, id: 8 },
 	];
 
 	useEffect(() => {
