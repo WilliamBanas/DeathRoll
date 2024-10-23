@@ -336,7 +336,7 @@ const Lobby: React.FC = () => {
 												</div>
 												<div>
 													<button
-														className="btn w-full"
+														className="btn btn-secondary w-full"
 														onClick={startGame}
 														disabled={!canStartGame}
 													>

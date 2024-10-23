@@ -183,7 +183,7 @@ const GameUi: React.FC<GameUiProps> = ({
 					<div className="flex flex-col items-center justify-center w-full h-96">
 						<div>
 							<p className="text-7xl text-white">
-								1 - <span className="text-primary">{formatNumber(animatedNumber)}</span>
+								1 - <span className="text-secondary">{formatNumber(animatedNumber)}</span>
 							</p>
 						</div>
 					</div>

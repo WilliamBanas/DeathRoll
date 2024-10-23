@@ -153,7 +153,7 @@ const Home: React.FC = () => {
 					{!sharedLobbyId ? (
 						<button
 							disabled={nickname === ""}
-							className="btn"
+							className="btn btn-secondary"
 							onClick={createLobby}
 						>
 							Host game
@@ -161,7 +161,7 @@ const Home: React.FC = () => {
 					) : (
 						<button
 							disabled={nickname === ""}
-							className="btn"
+							className="btn btn-secondary"
 							onClick={joinLobby}
 						>
 							Join game
