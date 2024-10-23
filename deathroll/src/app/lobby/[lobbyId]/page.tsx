@@ -6,12 +6,12 @@ import { useSocket } from "../../../contexts/socket";
 import GameUi from "../../../components/GameUi";
 import { Copy, Crown, LogOut } from "lucide-react";
 import Image from "next/image";
-import avatar1 from "../../public/assets/img/avatar1.png";
-import avatar2 from "../../public/assets/img/avatar2.png";
-import avatar3 from "../../public/assets/img/avatar3.png";
-import avatar4 from "../../public/assets/img/avatar4.png";
-import avatar5 from "../../public/assets/img/avatar5.png";
-import avatar6 from "../../public/assets/img/avatar6.png";
+import avatar1 from "../../assets/img/avatar1.png";
+import avatar2 from "../../assets/img/avatar2.png";
+import avatar3 from "../../assets/img/avatar3.png";
+import avatar4 from "../../assets/img/avatar4.png";
+import avatar5 from "../../assets/img/avatar5.png";
+import avatar6 from "../../assets/img/avatar6.png";
 
 interface Player {
 	host: boolean;
@@ -258,93 +258,101 @@ const Lobby: React.FC = () => {
 									<Copy className="w-5" />
 								</button>
 							</div>
+							<div className="bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-4">
+								{lobbyId && !games[lobbyId]?.isActive && (
+									<>
+										{isCurrentPlayerHost() ? (
+											<>
+												<h3 className="text-2xl mb-8">Game settings :</h3>
+												<div className="flex items-center justify-between gap-4">
+													<label className="text-md w-fit">
+														Default value :
+													</label>
+													<select
+														className="select select-bordered"
+														value={startingNumber.toString()}
+														onChange={(e) =>
+															setStartingNumber(Number(e.target.value))
+														}
+													>
+														{Array.from(
+															{ length: 100 },
+															(_, i) => (i + 1) * 100
+														).map((value) => (
+															<option key={value} value={value.toString()}>
+																{value}
+															</option>
+														))}
+													</select>
+												</div>
+												<div>
+													<button
+														className="btn w-full"
+														onClick={startGame}
+														disabled={!canStartGame}
+													>
+														Start Game
+													</button>
+												</div>
+											</>
+										) : (
+											<div className="text-gray-500 text-lg">
+												Waiting for the host to start game{dots}
+											</div>
+										)}
+									</>
+								)}
+							</div>
 							<div className="flex flex-col gap-2">
 								<h2 className="text-2xl w-full p-2">Players</h2>
-								<ul className="h-fit grid grid-cols-2 gap-3">
+								<ul className="h-fit grid grid-cols-2 gap-5 p-7">
 									{Array.from({ length: 10 }).map((_, index) => {
 										const player = lobbyData?.players[index];
 										return (
-											<li className="flex items-center gap-2 h-12" key={index}>
+											<li className="flex items-center gap-2 h-32" key={index}>
 												<div className="bg-base-200 rounded-md w-full h-full flex items-center gap-2 px-2 overflow-hidden">
 													{player ? (
-														<>
+														<div className="w-full flex flex-col items-center">
 															<Image
 																src={avatars[player.avatar - 1]}
 																alt={`Avatar ${player.avatar}`}
-																width={24}
-																height={24}
+																width={64}
 																className="rounded-full"
 															/>
-															{player.host && (
-																<Crown
-																	className={`w-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
-																	fill="currentColor"
-																	stroke="currentColor"
-																/>
-															)}
-															<p
-																className={`text-lg font-bold truncate ${
-																	player.socketId === socket?.id
-																		? "text-primary"
-																		: ""
-																}`}
-															>
-																{player.nickname}
-															</p>
-														</>
+															<div className="flex items-center gap-2">
+																{player.host && (
+																	<Crown
+																		className={`w-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
+																		fill="currentColor"
+																		stroke="currentColor"
+																	/>
+																)}
+																<p
+																	className={`text-lg font-bold truncate ${
+																		player.socketId === socket?.id
+																			? "text-primary"
+																			: ""
+																	}`}
+																>
+																	{player.nickname}
+																</p>
+															</div>
+														</div>
 													) : null}
 												</div>
 											</li>
 										);
-										})}
+									})}
 								</ul>
 							</div>
 						</div>
-						<div className="bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-4">
-							{lobbyId && !games[lobbyId]?.isActive && (
-								<>
-									{isCurrentPlayerHost() ? (
-										<>
-											<div className="flex items-center justify-between gap-4">
-												<label className="text-md w-fit">Default value :</label>
-												<select
-													className="select select-bordered"
-													value={startingNumber.toString()}
-													onChange={(e) => setStartingNumber(Number(e.target.value))}
-												>
-													{Array.from({ length: 100 }, (_, i) => (i + 1) * 100).map((value) => (
-														<option key={value} value={value.toString()}>
-															{value}
-														</option>
-													))}
-												</select>
-											</div>
-											<div>
-												<button
-													className="btn w-full"
-													onClick={startGame}
-													disabled={!canStartGame}
-												>
-													Start Game
-												</button>
-											</div>
-										</>
-									) : (
-										<div className="text-gray-500 text-lg">
-											Waiting for host to start game{dots}
-										</div>
-									)}
-
-									<button
-										className="btn btn-outline flex gap-2 "
-										onClick={leaveLobby}
-									>
-										<LogOut className="w-4" />
-										<p>Leave</p>
-									</button>
-								</>
-							)}
-						</div>
+						<button
+							className="btn btn-outline flex gap-2 "
+							onClick={leaveLobby}
+						>
+							<LogOut className="w-4" />
+							<p>Leave</p>
+						</button>
 					</div>
 				</main>
 			)}

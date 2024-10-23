@@ -4,12 +4,12 @@ import { useSocket } from "../contexts/socket";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import avatar1 from "../app/public/assets/img/avatar1.png";
-import avatar2 from "../app/public/assets/img/avatar2.png";
-import avatar3 from "../app/public/assets/img/avatar3.png";
-import avatar4 from "../app/public/assets/img/avatar4.png";
-import avatar5 from "../app/public/assets/img/avatar5.png";
-import avatar6 from "../app/public/assets/img/avatar6.png";
+import avatar1 from "./assets/img/avatar1.png";
+import avatar2 from "./assets/img/avatar2.png";
+import avatar3 from "./assets/img/avatar3.png";
+import avatar4 from "./assets/img/avatar4.png";
+import avatar5 from "./assets/img/avatar5.png";
+import avatar6 from "./assets/img/avatar6.png";
 
 const LobbyIdHandler: React.FC<{
 	setSharedLobbyId: (id: string | null) => void;
@@ -118,12 +118,12 @@ const Home: React.FC = () => {
 							<div
 								key={avatar.id}
 								id={`avatar${avatar.id}`}
-								className="carousel-item w-full"
+								className="carousel-item w-full flex justify-center items-center"
 							>
 								<Image
 									src={avatar.icon}
 									alt={`Avatar ${avatar.id}`}
-									className="w-full h-full"
+									className="w-56"
 								/>
 							</div>
 						))}
