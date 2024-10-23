@@ -1,4 +1,4 @@
-import Logo from "../app/assets/logo/DeathRoll.svg"
+import Logo from "../app/assets/logo/Deathroll.svg"
 
 export default function Header() {
 	return (
