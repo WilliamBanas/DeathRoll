@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { SocketProvider } from "@/contexts/socket";
 import Header from "@/components/Header";
 import "./globals.css";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Deathroll",
@@ -16,10 +17,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="min-h-dvh" data-theme="dracula">
-      <body>
+      <body className="flex flex-col justify-between">
         <SocketProvider>
           <Header />
           {children}
+          <Footer />
         </SocketProvider>
       </body>
     </html>
