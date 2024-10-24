@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export async function GET(request) {
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get('secret');
   const CRON_SECRET = process.env.CRON_SECRET;
