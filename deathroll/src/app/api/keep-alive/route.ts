@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
+export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get('secret');
   const CRON_SECRET = process.env.CRON_SECRET;
@@ -11,5 +11,5 @@ export async function GET(request: Request) {
 
   console.log('Cronjob exécuté avec succès');
 
-  return new NextResponse(null, { status: 204 });
+  return NextResponse.json(null, { status: 204 });
 }
