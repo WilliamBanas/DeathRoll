@@ -69,10 +69,10 @@ app.prepare().then(() => {
 	});
 
 	io.on("connection", (socket) => {
-		console.log(`User connected: connection id: ${socket.id}`);
+		// console.log(`User connected: connection id: ${socket.id}`);
 
 		socket.on("createLobby", ({ nickname, avatar }: { nickname: string, avatar: number }) => {
-			console.log(`Emitting createLobby event with nickname: ${nickname} and avatar: ${avatar}`);
+			// console.log(`Emitting createLobby event with nickname: ${nickname} and avatar: ${avatar}`);
 			const lobbyId = createLobbyId();
 
 			const player: Player = {
@@ -95,8 +95,8 @@ app.prepare().then(() => {
 			lobbies.push(newLobby);
 
 			socket.join(lobbyId);
-			console.log(`Lobby created with ID: ${lobbyId} by ${nickname}`);
-			console.log(`Lobbies:`, lobbies);
+			// console.log(`Lobby created with ID: ${lobbyId} by ${nickname}`);
+			// console.log(`Lobbies:`, lobbies);
 
 			socket.emit("lobbyCreated", { lobbyId, player });
 		});
@@ -136,7 +136,7 @@ app.prepare().then(() => {
 
 				lobby.players.push(player);
 				socket.join(lobbyId);
-				console.log(`Lobby rejoint avec l'ID: ${lobbyId} par ${nickname}`);
+				// console.log(`Lobby rejoint avec l'ID: ${lobbyId} par ${nickname}`);
 				io.to(lobbyId).emit("playerJoined", player);
 				socket.emit("lobbyJoined", { lobbyId, player });
 			} else {
@@ -172,7 +172,7 @@ app.prepare().then(() => {
 						);
 						if (lobbyIndex !== -1) {
 							lobbies.splice(lobbyIndex, 1);
-							console.log(`Lobby with ID: ${lobbyId} removed.`);
+							// console.log(`Lobby with ID: ${lobbyId} removed.`);
 							delete games[lobby.lobbyId]; // Supprimer également le jeu associé
 						}
 					} else if (playerLeaving.host) {
@@ -184,7 +184,7 @@ app.prepare().then(() => {
 					}
 
 					socket.broadcast.to(lobbyId).emit("playerLeft", socket.id);
-					console.log(`Player left the lobby: ${socket.id}`);
+					// console.log(`Player left the lobby: ${socket.id}`);
 				}
 			}
 		});
@@ -240,9 +240,9 @@ app.prepare().then(() => {
 						randomNum = Math.floor(Math.random() * lastGeneratedNum) + 1;
 					}
 
-					console.log(
-						`Player: ${currentPlayer.nickname}, Random Number: ${randomNum}`
-					);
+					// console.log(
+					// 	`Player: ${currentPlayer.nickname}, Random Number: ${randomNum}`
+					// );
 
 					game.playerNumbers[currentPlayer.socketId] = randomNum;
 
@@ -275,21 +275,21 @@ app.prepare().then(() => {
 		});
 
 		socket.on("stopGame", (lobbyId) => {
-			console.log(`Received stopGame event for lobby ${lobbyId}`);
+			// console.log(`Received stopGame event for lobby ${lobbyId}`);
 			const game = games[lobbyId];
 			if (game && game.isActive) {
 				game.isActive = false;
 				io.to(lobbyId).emit("gameOver", {
 					message: "The host has stopped the game.",
 				});
-				console.log(`Game in lobby ${lobbyId} has been stopped by the host.`);
+				// console.log(`Game in lobby ${lobbyId} has been stopped by the host.`);
 			} else {
-				console.log(`No active game found for lobby ${lobbyId}`);
+				// console.log(`No active game found for lobby ${lobbyId}`);
 			}
 		});
 
 		socket.on("disconnect", () => {
-			console.log(`User disconnected: connection id: ${socket.id}`);
+			// console.log(`User disconnected: connection id: ${socket.id}`);
 
 			const lobby = lobbies.find((lobby) =>
 				lobby.players.some((player) => player.socketId === socket.id)
@@ -312,7 +312,7 @@ app.prepare().then(() => {
 						);
 						if (lobbyIndex !== -1) {
 							lobbies.splice(lobbyIndex, 1);
-							console.log(`Lobby with ID: ${lobby.lobbyId} removed.`);
+							// console.log(`Lobby with ID: ${lobby.lobbyId} removed.`);
 							delete games[lobby.lobbyId]; // Supprimer également le jeu associé
 						}
 					} else if (playerLeaving.host) {
@@ -331,12 +331,12 @@ app.prepare().then(() => {
 							io.to(lobby.lobbyId).emit("gameOver", {
 								message: "All players have left. The game is over.",
 							});
-							console.log(`Game in lobby ${lobby.lobbyId} has ended.`);
+							// console.log(`Game in lobby ${lobby.lobbyId} has ended.`);
 						}
 					}
 
 					socket.broadcast.to(lobby.lobbyId).emit("playerLeft", socket.id);
-					console.log(`Player left the lobby: ${socket.id}`);
+					// console.log(`Player left the lobby: ${socket.id}`);
 				}
 			}
 		});
