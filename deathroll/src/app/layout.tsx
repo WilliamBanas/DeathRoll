@@ -18,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="min-h-dvh" data-theme="dracula">
-      <body className="flex flex-col justify-between">
+    <html lang="en" data-theme="dracula">
+      <body className="min-h-dvh flex flex-col">
         <SocketProvider>
           <Header />
           {children}

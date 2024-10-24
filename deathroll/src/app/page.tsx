@@ -111,7 +111,7 @@ const Home: React.FC = () => {
 	};
 
 	return (
-		<main className="px-6 my-16">
+		<main className="px-6 mt-16 mb-24">
 			<Suspense fallback={<div>Loading...</div>}>
 				<LobbyIdHandler setSharedLobbyId={setSharedLobbyId} />
 			</Suspense>

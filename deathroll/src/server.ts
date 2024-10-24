@@ -166,14 +166,13 @@ app.prepare().then(() => {
 					);
 
 					if (lobby.players.length === 0) {
-						// Supprimer le lobby s'il n'y a plus de joueurs
 						const lobbyIndex = lobbies.findIndex(
 							(l) => l.lobbyId === lobby.lobbyId
 						);
 						if (lobbyIndex !== -1) {
 							lobbies.splice(lobbyIndex, 1);
 							// console.log(`Lobby with ID: ${lobbyId} removed.`);
-							delete games[lobby.lobbyId]; // Supprimer également le jeu associé
+							delete games[lobby.lobbyId]; 
 						}
 					} else if (playerLeaving.host) {
 						const newHost = lobby.players[0];
@@ -208,7 +207,7 @@ app.prepare().then(() => {
 					players: lobby.players.map((player) => ({
 						nickname: player.nickname,
 						socketId: player.socketId,
-						avatar: player.avatar, // Include avatar in the player data
+						avatar: player.avatar, 
 					})),
 				});
 			}
@@ -306,14 +305,13 @@ app.prepare().then(() => {
 					);
 
 					if (lobby.players.length === 0) {
-						// Supprimer le lobby s'il n'y a plus de joueurs
 						const lobbyIndex = lobbies.findIndex(
 							(l) => l.lobbyId === lobby.lobbyId
 						);
 						if (lobbyIndex !== -1) {
 							lobbies.splice(lobbyIndex, 1);
 							// console.log(`Lobby with ID: ${lobby.lobbyId} removed.`);
-							delete games[lobby.lobbyId]; // Supprimer également le jeu associé
+							delete games[lobby.lobbyId]; 
 						}
 					} else if (playerLeaving.host) {
 						const newHost = lobby.players[0];
@@ -327,7 +325,7 @@ app.prepare().then(() => {
 					if (game && game.isActive) {
 						if (lobby.players.length === 0) {
 							game.isActive = false;
-							delete games[lobby.lobbyId]; // Supprimer le jeu associé au lobby
+							delete games[lobby.lobbyId]; 
 							io.to(lobby.lobbyId).emit("gameOver", {
 								message: "All players have left. The game is over.",
 							});
