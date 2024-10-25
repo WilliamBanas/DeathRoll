@@ -292,13 +292,13 @@ const Lobby: React.FC = () => {
 																	<Image
 																		src={avatars[player.avatar - 1]}
 																		alt={`Avatar ${player.avatar}`}
-																		width={64}
+																		width={50}
 																		className="rounded-full"
 																	/>
 																	<div className="w-full flex items-center justify-center gap-2">
 																		{player.host && (
 																			<Crown
-																				className={`w-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
+																				className={`w-3 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
 																				fill="currentColor"
 																				stroke="currentColor"
 																			/>
