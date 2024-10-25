@@ -260,7 +260,7 @@ const Lobby: React.FC = () => {
 				<main className="px-6 my-16">
 					<div className="flex flex-col items-center gap-4 w-full m-auto">
 						<div className="mb-24 flex flex-col gap-4 lg:flex-row">
-							<div className="w-96 flex flex-col gap-4 w-full">
+							<div className="w-80 max-w-80 flex flex-col gap-4 w-full">
 								<div className="bg-base-200 rounded-md px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 									<p className="text-2xl">{lobbyId}</p>
 									<button
@@ -324,7 +324,7 @@ const Lobby: React.FC = () => {
 								</div>
 							</div>
 
-							<div className="bg-base-200 rounded-md p-6 w-96 h-fit flex flex-col gap-4">
+							<div className="bg-base-200 rounded-md p-6 w-80 max-w-80 h-fit flex flex-col gap-4">
 								{lobbyId && !games[lobbyId]?.isActive && (
 									<>
 										{isCurrentPlayerHost() ? (
