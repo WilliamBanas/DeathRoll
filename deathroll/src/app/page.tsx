@@ -115,8 +115,8 @@ const Home: React.FC = () => {
 			<Suspense fallback={<div>Loading...</div>}>
 				<LobbyIdHandler setSharedLobbyId={setSharedLobbyId} />
 			</Suspense>
-			<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
-				<div className="bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-3">
+			<div className="flex flex-col items-center justify-center lg:items-start lg:flex-row gap-4 ">
+				<div className="max-w-96 bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-3">
 					<div className="carousel w-full">
 						{avatars.map((avatar) => (
 							<div
@@ -172,7 +172,7 @@ const Home: React.FC = () => {
 						</button>
 					)}
 				</div>
-				<div className="flex flex-col gap-3 w-full h-fit">
+				<div className="max-w-96 flex flex-col gap-3 h-fit">
 					<div className="bg-base-200 collapse collapse-arrow rounded-md">
 						<input type="checkbox" />
 						<div className=" collapse-title">What are the rules ?</div>

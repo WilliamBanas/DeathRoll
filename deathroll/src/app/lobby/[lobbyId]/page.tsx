@@ -62,7 +62,16 @@ const Lobby: React.FC = () => {
 		}
 	};
 
-	const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6, avatar7, avatar8];
+	const avatars = [
+		avatar1,
+		avatar2,
+		avatar3,
+		avatar4,
+		avatar5,
+		avatar6,
+		avatar7,
+		avatar8,
+	];
 
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -249,67 +258,73 @@ const Lobby: React.FC = () => {
 				/>
 			) : (
 				<main className="px-6 my-16">
-					<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96 ">
-						<div className="flex flex-col gap-4 w-full">
-							<div className="bg-base-200 rounded-md px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
-								<p className="text-2xl">{lobbyId}</p>
-								<button
-									className="btn bg-base-200 border-none w-fit"
-									onClick={copyLobbyLink}
-								>
-									<Copy className="w-5" />
-								</button>
-							</div>
-							<div className="flex flex-col gap-2">
-								<div className="flex justify-between items-center w-full p-2">
-									<h2 className="text-2xl">Players</h2>
-									<span className="text-lg font-semibold bg-base-200 px-3 py-1 rounded-full">
-										{lobbyData?.players.length || 0}/10
-									</span>
+					<div className="flex flex-col items-center gap-4 w-full m-auto">
+						<div className="mb-24 flex flex-col gap-4 lg:flex-row">
+							<div className="w-96 flex flex-col gap-4 w-full">
+								<div className="bg-base-200 rounded-md px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
+									<p className="text-2xl">{lobbyId}</p>
+									<button
+										className="btn bg-base-200 border-none w-fit"
+										onClick={copyLobbyLink}
+									>
+										<Copy className="w-5" />
+									</button>
 								</div>
-								<div className="overflow-x-auto w-full">
-									<ul className="h-fit w-max grid grid-cols-5 gap-3 p-3">
-										{Array.from({ length: 10 }).map((_, index) => {
-											const player = lobbyData?.players[index];
-											return (
-												<li className="flex items-center gap-2 h-32 w-32" key={index}>
-													<div className="bg-base-200 rounded-md w-full h-full flex items-center gap-2 px-2 overflow-hidden">
-														{player ? (
-															<div className="w-full flex flex-col items-center">
-																<Image
-																	src={avatars[player.avatar - 1]}
-																	alt={`Avatar ${player.avatar}`}
-																	width={64}
-																	className="rounded-full"
-																/>
-																<div className="w-full flex items-center justify-center gap-2">
-																	{player.host && (
-																		<Crown
-																			className={`w-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
-																			fill="currentColor"
-																			stroke="currentColor"
-																		/>
-																	)}
-																	<p
-																		className={`text-lg font-bold truncate ${
-																			player.socketId === socket?.id
-																				? "text-primary"
-																				: ""
-																		}`}
-																	>
-																		{player.nickname}
-																	</p>
+								<div className="flex flex-col gap-2">
+									<div className="flex justify-between items-center w-full p-2">
+										<h2 className="text-2xl">Players</h2>
+										<span className="text-lg font-semibold bg-base-200 px-3 py-1 rounded-full">
+											{lobbyData?.players.length || 0}/10
+										</span>
+									</div>
+									<div className="overflow-x-auto w-full">
+										<ul className="h-64 lg:h-fit grid grid-cols-3 gap-2">
+											{Array.from({ length: 10 }).map((_, index) => {
+												const player = lobbyData?.players[index];
+												return (
+													<li
+														className="flex items-center aspect-square"
+														key={index}
+													>
+														<div className="bg-base-200 rounded-md w-full h-full flex items-center justify-center p-2 overflow-hidden">
+															{player ? (
+																<div className="w-full flex flex-col items-center">
+																	<Image
+																		src={avatars[player.avatar - 1]}
+																		alt={`Avatar ${player.avatar}`}
+																		width={64}
+																		className="rounded-full"
+																	/>
+																	<div className="w-full flex items-center justify-center gap-2">
+																		{player.host && (
+																			<Crown
+																				className={`w-4 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
+																				fill="currentColor"
+																				stroke="currentColor"
+																			/>
+																		)}
+																		<p
+																			className={`text-md font-bold truncate ${
+																				player.socketId === socket?.id
+																					? "text-primary"
+																					: ""
+																			}`}
+																		>
+																			{player.nickname}
+																		</p>
+																	</div>
 																</div>
-															</div>
-														) : null}
-													</div>
-												</li>
-											);
-										})}
-									</ul>
+															) : null}
+														</div>
+													</li>
+												);
+											})}
+										</ul>
+									</div>
 								</div>
 							</div>
-							<div className="bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-4">
+
+							<div className="bg-base-200 rounded-md p-6 w-96 h-fit flex flex-col gap-4">
 								{lobbyId && !games[lobbyId]?.isActive && (
 									<>
 										{isCurrentPlayerHost() ? (
