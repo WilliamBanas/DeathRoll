@@ -260,7 +260,7 @@ const Lobby: React.FC = () => {
 				<main className="px-6 my-16">
 					<div className="flex flex-col items-center gap-4 w-full m-auto">
 						<div className="mb-24 flex flex-col gap-4 lg:flex-row">
-							<div className="w-80 max-w-80 flex flex-col gap-4 w-full">
+							<div className="min-w-80 max-w-80 flex flex-col gap-4 w-full">
 								<div className="bg-base-200 rounded-md px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
 									<p className="text-2xl">{lobbyId}</p>
 									<button
@@ -324,18 +324,18 @@ const Lobby: React.FC = () => {
 								</div>
 							</div>
 
-							<div className="bg-base-200 rounded-md p-6 w-80 max-w-80 h-fit flex flex-col gap-4">
+							<div className="bg-base-200 rounded-md p-6 min-w-80 max-w-80 h-fit flex flex-col gap-4">
 								{lobbyId && !games[lobbyId]?.isActive && (
 									<>
 										{isCurrentPlayerHost() ? (
 											<>
 												<h3 className="text-2xl mb-8">Game settings :</h3>
-												<div className="flex items-center justify-between gap-4">
+												<div className="flex items-center justify-between gap-4 mb-12">
 													<label className="text-md w-fit">
 														Default value :
 													</label>
 													<select
-														className="select select-bordered"
+														className="select select-bordered select-sm"
 														value={startingNumber.toString()}
 														onChange={(e) =>
 															setStartingNumber(Number(e.target.value))
