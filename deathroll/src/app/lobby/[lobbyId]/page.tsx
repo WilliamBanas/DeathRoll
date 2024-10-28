@@ -273,7 +273,7 @@ const Lobby: React.FC = () => {
 								<div className="flex flex-col gap-2">
 									<div className="flex justify-between items-center w-full p-2">
 										<h2 className="text-2xl">Players</h2>
-										<span className="text-lg font-semibold bg-base-200 px-3 py-1 rounded-full">
+										<span className="text-lg font-semibold bg-base-200 px-3 py-1 rounded-md">
 											{lobbyData?.players.length || 0}/10
 										</span>
 									</div>
@@ -362,7 +362,7 @@ const Lobby: React.FC = () => {
 												</div>
 											</>
 										) : (
-											<div className="text-gray-500 text-lg">
+											<div className="text-gray-500 text-md">
 												Waiting for the host to start game{dots}
 											</div>
 										)}
