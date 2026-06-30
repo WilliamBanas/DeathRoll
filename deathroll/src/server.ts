@@ -26,6 +26,8 @@ interface Player {
   avatar: number;
   loser: boolean;
   connected: boolean;
+  ready: boolean;
+  returnedToLobby: boolean;
 }
 
 interface GameState {
@@ -79,6 +81,8 @@ app.prepare().then(() => {
         avatar,
         loser: false,
         connected: true,
+        ready: false,
+        returnedToLobby: false,
       };
 
       const session: LobbySession = {
@@ -121,6 +125,8 @@ app.prepare().then(() => {
             avatar,
             loser: false,
             connected: true,
+            ready: false,
+            returnedToLobby: false,
           };
 
           session.players.set(newPlayerId, player);
@@ -176,6 +182,8 @@ app.prepare().then(() => {
         avatar,
         loser: false,
         connected: true,
+        ready: false,
+        returnedToLobby: false,
       };
 
       session.players.set(playerId, player);
@@ -229,6 +237,48 @@ app.prepare().then(() => {
       io.to(lobbyId).emit("playerReconnected", { playerId });
     });
 
+    socket.on("leaveLobby", (lobbyId: string) => {
+      const session = sessions.get(lobbyId);
+      if (!session) return;
+
+      for (const [playerId, player] of session.players) {
+        if (player.socketId === socket.id) {
+          session.players.delete(playerId);
+
+          io.to(lobbyId).emit("playerLeft", { playerId });
+
+          if (session.players.size === 0) {
+            io.to(lobbyId).emit("lobbyClosed");
+            sessions.delete(lobbyId);
+          } else if (player.host) {
+            const nextHost = [...session.players.values()].find((p) => p.connected);
+            if (nextHost) {
+              nextHost.host = true;
+              io.to(lobbyId).emit("newHost", { playerId: nextHost.playerId });
+            }
+          }
+
+          return;
+        }
+      }
+    });
+
+    socket.on("toggleReady", (lobbyId: string) => {
+      const session = sessions.get(lobbyId);
+      if (!session) return;
+
+      for (const player of session.players.values()) {
+        if (player.socketId === socket.id) {
+          player.ready = !player.ready;
+          io.to(lobbyId).emit("playerReady", {
+            playerId: player.playerId,
+            ready: player.ready,
+          });
+          return;
+        }
+      }
+    });
+
     socket.on("startGame", ({ lobbyId, startingNumber }) => {
       const session = sessions.get(lobbyId);
       if (!session) return;
@@ -238,6 +288,18 @@ app.prepare().then(() => {
       if (players.length < 2) {
         socket.emit("lobbyError", "Not enough connected players to start");
         return;
+      }
+
+      const allReady = players.every((p) => p.ready);
+      if (!allReady) {
+        socket.emit("lobbyError", "Not all players are ready");
+        return;
+      }
+
+      for (const p of session.players.values()) {
+        p.ready = false;
+        p.returnedToLobby = false;
+        p.loser = false;
       }
 
       const turnOrder = players
@@ -313,6 +375,64 @@ app.prepare().then(() => {
       });
     });
 
+    socket.on("stopGame", (lobbyId: string) => {
+      const session = sessions.get(lobbyId);
+      if (!session) return;
+
+      session.game = {
+        status: "WAITING",
+        turnOrder: [],
+        currentPlayerId: null,
+        startingNumber: null,
+        isFirstTurn: true,
+        playerNumbers: {},
+      };
+
+      for (const player of session.players.values()) {
+        player.loser = false;
+        player.ready = false;
+        player.returnedToLobby = false;
+      }
+
+      io.to(lobbyId).emit("gameReset");
+    });
+
+    socket.on("returnToLobby", (lobbyId: string) => {
+      const session = sessions.get(lobbyId);
+      if (!session) return;
+
+      for (const player of session.players.values()) {
+        if (player.socketId === socket.id) {
+          player.returnedToLobby = true;
+          io.to(lobbyId).emit("playerReturned", {
+            playerId: player.playerId,
+          });
+
+          const allReturned = [...session.players.values()].every(
+            (p) => p.returnedToLobby
+          );
+
+          if (allReturned) {
+            session.game = {
+              status: "WAITING",
+              turnOrder: [],
+              currentPlayerId: null,
+              startingNumber: null,
+              isFirstTurn: true,
+              playerNumbers: {},
+            };
+            for (const p of session.players.values()) {
+              p.loser = false;
+              p.ready = false;
+            }
+            io.to(lobbyId).emit("gameReset");
+          }
+
+          return;
+        }
+      }
+    });
+
     socket.on("disconnect", () => {
       for (const session of sessions.values()) {
         for (const player of session.players.values()) {
@@ -330,6 +450,18 @@ app.prepare().then(() => {
             if (allDisconnected) {
               io.to(session.lobbyId).emit("lobbyClosed");
               sessions.delete(session.lobbyId);
+              console.log(`Lobby ${session.lobbyId} has been deleted due to no player left`)
+            } else if (player.host) {
+              player.host = false;
+              const nextHost = [...session.players.values()].find(
+                (p) => p.connected
+              );
+              if (nextHost) {
+                nextHost.host = true;
+                io.to(session.lobbyId).emit("newHost", {
+                  playerId: nextHost.playerId,
+                });
+              }
             }
 
             return;

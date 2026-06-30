@@ -29,6 +29,8 @@ export default function LobbyPage() {
 	const [startingNumber, setStartingNumber] = useState(100);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [returnedToLobby, setReturnedToLobby] = useState(false);
+	const [loserName, setLoserName] = useState<string | null>(null);
 
 	const isHost = lobbyData?.players.find((p) => p.playerId === playerId)?.host ?? false;
 
@@ -51,16 +53,33 @@ export default function LobbyPage() {
 	useEffect(() => {
 		if (!socket || !lobbyId) return;
 
+		const onConnect = () => {
+			socket.emit("reconnectLobby", { lobbyId, playerId });
+		};
+
 		socket.emit("getLobbyData", lobbyId);
 		socket.emit("reconnectLobby", { lobbyId, playerId });
+		socket.on("connect", onConnect);
 
 		const onLobbyData = (data: any) => {
 			setLobbyData(data);
+			if (data.game?.status !== "WAITING") {
+				setGames((prev) => ({
+					...prev,
+					[lobbyId]: data.game,
+				}));
+			}
+			if (data.game?.status !== "FINISHED") {
+				setReturnedToLobby(false);
+				setLoserName(null);
+			}
 			setLoading(false);
 		};
 
 		const onLobbyError = () => {
 			setLoading(false);
+			localStorage.removeItem("lastLobbyId");
+			router.push("/");
 		};
 
 		const onPlayerJoined = (player: any) => {
@@ -97,6 +116,8 @@ export default function LobbyPage() {
 		};
 
 		const onGameStarted = ({ currentPlayerId, startingNumber }: any) => {
+			setReturnedToLobby(false);
+			setLoserName(null);
 			setGames((prev) => ({
 				...prev,
 				[lobbyId]: {
@@ -108,6 +129,17 @@ export default function LobbyPage() {
 					turnOrder: [],
 				},
 			}));
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) => ({
+						...p,
+						ready: false,
+						returnedToLobby: false,
+					})),
+				};
+			});
 		};
 
 		const onTurnChanged = ({ currentPlayerId }: any) => {
@@ -120,7 +152,9 @@ export default function LobbyPage() {
 			}));
 		};
 
-		const onGameOver = () => {
+		const onGameOver = ({ loser }: { loser: string }) => {
+			setLoserName(loser);
+			setReturnedToLobby(false);
 			setGames((prev) => ({
 				...prev,
 				[lobbyId]: {
@@ -128,6 +162,80 @@ export default function LobbyPage() {
 					status: "FINISHED",
 				},
 			}));
+		};
+
+		const onPlayerLeft = ({ playerId: id }: { playerId: string }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.filter((p) => p.playerId !== id),
+				};
+			});
+		};
+
+		const onNewHost = ({ playerId: id }: { playerId: string }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) => ({
+						...p,
+						host: p.playerId === id,
+					})),
+				};
+			});
+		};
+
+		const onPlayerReady = ({ playerId: id, ready }: { playerId: string; ready: boolean }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) =>
+						p.playerId === id ? { ...p, ready } : p
+					),
+				};
+			});
+		};
+
+		const onPlayerReturned = ({ playerId: id }: { playerId: string }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) =>
+						p.playerId === id ? { ...p, returnedToLobby: true } : p
+					),
+				};
+			});
+		};
+
+		const onGameReset = () => {
+			setReturnedToLobby(false);
+			setLoserName(null);
+			setGames((prev) => ({
+				...prev,
+				[lobbyId]: {
+					status: "WAITING",
+					turnOrder: [],
+					currentPlayerId: null,
+					startingNumber: null,
+					isFirstTurn: true,
+					playerNumbers: {},
+				},
+			}));
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) => ({
+						...p,
+						ready: false,
+						returnedToLobby: false,
+					})),
+				};
+			});
 		};
 
 		const onLobbyClosed = () => {
@@ -140,20 +248,31 @@ export default function LobbyPage() {
 		socket.on("playerJoined", onPlayerJoined);
 		socket.on("playerDisconnected", onPlayerDisconnected);
 		socket.on("playerReconnected", onPlayerReconnected);
+		socket.on("playerLeft", onPlayerLeft);
+		socket.on("newHost", onNewHost);
+		socket.on("playerReady", onPlayerReady);
+		socket.on("playerReturned", onPlayerReturned);
 		socket.on("gameStarted", onGameStarted);
 		socket.on("turnChanged", onTurnChanged);
 		socket.on("gameOver", onGameOver);
+		socket.on("gameReset", onGameReset);
 		socket.on("lobbyClosed", onLobbyClosed);
 
 		return () => {
+			socket.off("connect", onConnect);
 			socket.off("lobbyData", onLobbyData);
 			socket.off("lobbyError", onLobbyError);
 			socket.off("playerJoined", onPlayerJoined);
 			socket.off("playerDisconnected", onPlayerDisconnected);
 			socket.off("playerReconnected", onPlayerReconnected);
+			socket.off("playerLeft", onPlayerLeft);
+			socket.off("newHost", onNewHost);
+			socket.off("playerReady", onPlayerReady);
+			socket.off("playerReturned", onPlayerReturned);
 			socket.off("gameStarted", onGameStarted);
 			socket.off("turnChanged", onTurnChanged);
 			socket.off("gameOver", onGameOver);
+			socket.off("gameReset", onGameReset);
 			socket.off("lobbyClosed", onLobbyClosed);
 		};
 	}, [socket, lobbyId]);
@@ -168,6 +287,26 @@ export default function LobbyPage() {
 
 	const startGame = () => {
 		socket?.emit("startGame", { lobbyId, startingNumber });
+	};
+
+	const toggleReady = () => {
+		socket?.emit("toggleReady", lobbyId);
+		setLobbyData((prev) => {
+			if (!prev) return prev;
+			return {
+				...prev,
+				players: prev.players.map((p) =>
+					p.playerId === playerId
+						? { ...p, ready: !p.ready }
+						: p
+				),
+			};
+		});
+	};
+
+	const handleReturnToLobby = () => {
+		socket?.emit("returnToLobby", lobbyId);
+		setReturnedToLobby(true);
 	};
 
 	const leaveLobby = () => {
@@ -186,7 +325,10 @@ export default function LobbyPage() {
 	if (loading) return <div>Loading...</div>;
 	if (error) return <div className="text-red-500">{error}</div>;
 
-	if (games[lobbyId]?.status === "PLAYING") {
+	const isPlaying = games[lobbyId]?.status === "PLAYING";
+	const isGameOver = games[lobbyId]?.status === "FINISHED" && !returnedToLobby;
+
+	if (isPlaying || isGameOver) {
 		return (
 			<GameUi
 				lobbyData={lobbyData}
@@ -197,6 +339,8 @@ export default function LobbyPage() {
 				stopGame={() => socket?.emit("stopGame", lobbyId)}
 				startingNumber={startingNumber}
 				playerId={playerId}
+				returnToLobby={handleReturnToLobby}
+				loserName={loserName}
 			/>
 		);
 	}
@@ -232,6 +376,16 @@ export default function LobbyPage() {
 												{!player.connected && (
 													<span className="badge badge-neutral badge-xs absolute top-1 right-1">
 														Disconnected
+													</span>
+												)}
+												{games[lobbyId]?.status === "FINISHED" && !player.returnedToLobby && (
+													<span className="badge badge-accent badge-xs absolute top-1 right-1">
+														Ingame
+													</span>
+												)}
+												{games[lobbyId]?.status !== "FINISHED" && player.ready && (
+													<span className="badge badge-success badge-xs absolute top-1 right-1">
+														Ready
 													</span>
 												)}
 												<Image
@@ -270,6 +424,7 @@ export default function LobbyPage() {
 								<button
 									onClick={startGame}
 									className="btn btn-secondary w-full mt-4"
+									disabled={!lobbyData?.players.every((p) => !p.connected || p.ready)}
 								>
 									Start Game
 								</button>
@@ -279,6 +434,18 @@ export default function LobbyPage() {
 								Waiting for host to start{".".repeat(dotCount)}
 							</p>
 						)}
+
+						<div className="mt-4 flex flex-col items-center gap-2">
+							<p className="text-sm">
+								Ready: {lobbyData?.players.filter((p) => p.connected && p.ready).length ?? 0}/
+								{lobbyData?.players.filter((p) => p.connected).length ?? 0}
+							</p>
+							<button onClick={toggleReady} className="btn btn-sm w-full">
+								{lobbyData?.players.find((p) => p.playerId === playerId)?.ready
+									? "Not Ready"
+									: "Ready"}
+							</button>
+						</div>
 					</div>
 				</div>
 

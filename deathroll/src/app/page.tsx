@@ -24,9 +24,24 @@ export default function Home() {
 
 	useEffect(() => {
 		const savedLobbyId = localStorage.getItem("lastLobbyId");
-		if (savedLobbyId && socket) {
+		if (!savedLobbyId || !socket) return;
+
+		const onLobbyData = () => {
 			router.push(`/lobby/${savedLobbyId}`);
-		}
+		};
+
+		const onLobbyError = () => {
+			localStorage.removeItem("lastLobbyId");
+		};
+
+		socket.emit("getLobbyData", savedLobbyId);
+		socket.on("lobbyData", onLobbyData);
+		socket.on("lobbyError", onLobbyError);
+
+		return () => {
+			socket.off("lobbyData", onLobbyData);
+			socket.off("lobbyError", onLobbyError);
+		};
 	}, [socket, router]);
 
 	useEffect(() => {

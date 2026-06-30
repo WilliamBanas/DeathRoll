@@ -6,6 +6,8 @@ export interface Player {
 	avatar: number;
 	loser: boolean;
 	connected: boolean;
+	ready: boolean;
+	returnedToLobby: boolean;
 }
 
 export interface Lobby {

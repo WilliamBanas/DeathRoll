@@ -36,6 +36,8 @@ interface GameUiProps {
 	stopGame: () => void;
 	startingNumber: number;
 	playerId: string;
+	returnToLobby: () => void;
+	loserName: string | null;
 }
 
 const GameUi: React.FC<GameUiProps> = ({
@@ -46,6 +48,8 @@ const GameUi: React.FC<GameUiProps> = ({
 	games,
 	stopGame,
 	playerId,
+	returnToLobby,
+	loserName,
 }) => {
 	const game = lobbyId ? games[lobbyId] : null;
 
@@ -112,6 +116,12 @@ const GameUi: React.FC<GameUiProps> = ({
 		};
 	}, [socket]);
 
+	useEffect(() => {
+		if (game?.startingNumber) {
+			previousNumberRef.current = game.startingNumber;
+		}
+	}, [game?.startingNumber]);
+
 	/* =========================
 	   ANIMATION
 	========================= */
@@ -160,8 +170,11 @@ const GameUi: React.FC<GameUiProps> = ({
 
 	if (gameOver) {
 		return (
-			<div className="flex flex-col items-center justify-center mt-32">
-				<p className="text-5xl font-bold">{dialogMessage} lost !</p>
+			<div className="flex flex-col items-center justify-center mt-32 gap-6">
+				<p className="text-5xl font-bold">{loserName || dialogMessage} lost !</p>
+				<GameOverReturn
+					returnToLobby={returnToLobby}
+				/>
 			</div>
 		);
 	}
@@ -209,5 +222,29 @@ const GameUi: React.FC<GameUiProps> = ({
 		</main>
 	);
 };
+
+function GameOverReturn({ returnToLobby }: { returnToLobby: () => void }) {
+	const [countdown, setCountdown] = useState(10);
+	const returnToLobbyRef = useRef(returnToLobby);
+	returnToLobbyRef.current = returnToLobby;
+
+	useEffect(() => {
+		if (countdown <= 0) {
+			returnToLobbyRef.current();
+			return;
+		}
+		const timer = setTimeout(() => setCountdown((prev) => prev - 1), 1000);
+		return () => clearTimeout(timer);
+	}, [countdown]);
+
+	return (
+		<div className="flex flex-col items-center gap-4">
+			<p className="text-lg">Return to lobby in {countdown}s</p>
+			<button onClick={() => returnToLobbyRef.current()} className="btn btn-secondary">
+				Return to lobby
+			</button>
+		</div>
+	);
+}
 
 export default GameUi;
