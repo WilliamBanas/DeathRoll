@@ -1,6 +1,6 @@
 "use client";
 import { Dices } from "lucide-react";
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type FC } from "react";
 import { Socket } from "socket.io-client";
 
 interface Player {
@@ -34,13 +34,12 @@ interface GameUiProps {
 	socket: Socket | null;
 	games: { [lobbyId: string]: Game };
 	stopGame: () => void;
-	startingNumber: number;
 	playerId: string;
 	returnToLobby: () => void;
 	loserName: string | null;
 }
 
-const GameUi: React.FC<GameUiProps> = ({
+const GameUi: FC<GameUiProps> = ({
 	lobbyData,
 	lobbyId,
 	socket,
@@ -157,10 +156,6 @@ const GameUi: React.FC<GameUiProps> = ({
 	   ACTIONS
 	========================= */
 
-	const handleStopGame = () => {
-		stopGame();
-	};
-
 	const formatNumber = (num: number) =>
 		num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
@@ -214,7 +209,7 @@ const GameUi: React.FC<GameUiProps> = ({
 
 				{/* STOP */}
 				{isHost && (
-					<button onClick={handleStopGame} className="btn">
+					<button onClick={stopGame} className="btn">
 						Retour au lobby
 					</button>
 				)}

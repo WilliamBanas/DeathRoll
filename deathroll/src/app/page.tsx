@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSocket } from "@/contexts/socket";
 import { useRouter } from "next/navigation";
 import Image from "next/image";

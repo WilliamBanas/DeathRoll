@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSocket } from "@/contexts/socket";
 import GameUi from "@/components/GameUi";
@@ -16,7 +16,7 @@ import avatar6 from "../../assets/img/avatar6.png";
 import avatar7 from "../../assets/img/avatar7.png";
 import avatar8 from "../../assets/img/avatar8.png";
 
-import type { Lobby, Player, Game } from "../../../types/games";
+import type { Lobby, Game } from "../../../types/games";
 
 export default function LobbyPage() {
 	const router = useRouter();
@@ -337,7 +337,6 @@ export default function LobbyPage() {
 				socket={socket}
 				games={games}
 				stopGame={() => socket?.emit("stopGame", lobbyId)}
-				startingNumber={startingNumber}
 				playerId={playerId}
 				returnToLobby={handleReturnToLobby}
 				loserName={loserName}
