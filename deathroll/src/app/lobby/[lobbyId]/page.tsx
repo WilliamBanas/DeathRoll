@@ -275,7 +275,7 @@ export default function LobbyPage() {
 			socket.off("gameReset", onGameReset);
 			socket.off("lobbyClosed", onLobbyClosed);
 		};
-	}, [socket, lobbyId]);
+	}, [socket, lobbyId, playerId, router]);
 
 	/* ACTIONS */
 	const handlePlayerAction = () => {

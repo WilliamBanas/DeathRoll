@@ -91,6 +91,7 @@ const GameUi: FC<GameUiProps> = ({
 			randomNum: number;
 		}) => {
 			setCurrentRoll(randomNum);
+			setIsAnimating(true);
 		};
 
 		const handleGameOver = ({
@@ -127,8 +128,6 @@ const GameUi: FC<GameUiProps> = ({
 
 	useEffect(() => {
 		if (currentRoll === null) return;
-
-		setIsAnimating(true);
 
 		const start = previousNumberRef.current;
 		const end = currentRoll;
@@ -221,7 +220,10 @@ const GameUi: FC<GameUiProps> = ({
 function GameOverReturn({ returnToLobby }: { returnToLobby: () => void }) {
 	const [countdown, setCountdown] = useState(10);
 	const returnToLobbyRef = useRef(returnToLobby);
-	returnToLobbyRef.current = returnToLobby;
+
+	useEffect(() => {
+		returnToLobbyRef.current = returnToLobby;
+	}, [returnToLobby]);
 
 	useEffect(() => {
 		if (countdown <= 0) {

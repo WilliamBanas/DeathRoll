@@ -11,16 +11,12 @@ export default function Home() {
 
 	const [nickname, setNickname] = useState("");
 	const [error, setError] = useState<string | null>(null);
-	const [sharedLobbyId, setSharedLobbyId] = useState<string | null>(null);
-	const [selectedAvatar, setSelectedAvatar] = useState(1);
-
-	useEffect(() => {
+	const [sharedLobbyId, setSharedLobbyId] = useState<string | null>(() => {
+		if (typeof window === "undefined") return null;
 		const params = new URLSearchParams(window.location.search);
-		const lobbyIdParam = params.get("lobbyId");
-		if (lobbyIdParam) {
-			setSharedLobbyId(lobbyIdParam);
-		}
-	}, []);
+		return params.get("lobbyId");
+	});
+	const [selectedAvatar, setSelectedAvatar] = useState(1);
 
 	useEffect(() => {
 		const savedLobbyId = localStorage.getItem("lastLobbyId");
@@ -74,7 +70,7 @@ export default function Home() {
 			socket.off("lobbyJoined", onJoined);
 			socket.off("lobbyError", onError);
 		};
-	}, [socket, router]);
+	}, [socket, router, setPlayerId]);
 
 	const createLobby = () => {
 		if (!socket || !nickname) return;
