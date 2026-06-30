@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { io, Socket } from "socket.io-client";
 
 const API_URL =
@@ -36,7 +36,7 @@ const getOrCreatePlayerId = () => {
 export const SocketProvider = ({
 	children,
 }: {
-	children: React.ReactNode;
+	children: ReactNode;
 }) => {
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [playerId, setPlayerIdState] = useState(getOrCreatePlayerId);
@@ -52,6 +52,7 @@ export const SocketProvider = ({
 			withCredentials: true,
 		});
 
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate: synchronizing React with external WebSocket
 		setSocket(s);
 
 		return () => {
