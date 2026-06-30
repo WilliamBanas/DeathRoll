@@ -1,27 +1,30 @@
+"use client";
 import { Dices } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
 import { Socket } from "socket.io-client";
 
 interface Player {
-	host: boolean;
-	nickname: string;
-	lobbyId: string | null;
+	playerId: string;
 	socketId: string;
-	turn: boolean;
+	nickname: string;
+	host: boolean;
+	avatar: number;
 	loser: boolean;
+	connected: boolean;
 }
 
 interface Lobby {
 	lobbyId: string;
-	host: string;
 	players: Player[];
 }
 
 interface Game {
-	currentTurn: number;
-	isActive: boolean;
-	playerNumbers: { [socketId: string]: number };
+	status: "WAITING" | "PLAYING" | "FINISHED";
+	turnOrder: string[];
+	currentPlayerId: string | null;
+	startingNumber: number | null;
 	isFirstTurn: boolean;
+	playerNumbers: Record<string, number>;
 }
 
 interface GameUiProps {
@@ -32,6 +35,9 @@ interface GameUiProps {
 	games: { [lobbyId: string]: Game };
 	stopGame: () => void;
 	startingNumber: number;
+	playerId: string;
+	returnToLobby: () => void;
+	loserName: string | null;
 }
 
 const GameUi: React.FC<GameUiProps> = ({
@@ -41,176 +47,204 @@ const GameUi: React.FC<GameUiProps> = ({
 	handlePlayerAction,
 	games,
 	stopGame,
-	startingNumber,
+	playerId,
+	returnToLobby,
+	loserName,
 }) => {
 	const game = lobbyId ? games[lobbyId] : null;
-	const [currentRoll, setCurrentRoll] = useState<number | null>(null);
-	const currentPlayer =
-		game && lobbyData ? lobbyData.players[game.currentTurn] : null;
-	const isMyTurn = currentPlayer?.socketId === socket?.id;
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const [dialogMessage, setDialogMessage] = useState("");
-	const [animatedNumber, setAnimatedNumber] = useState(startingNumber);
-	const previousNumberRef = useRef(startingNumber);
-	const [isAnimating, setIsAnimating] = useState(false);
-	const [gameOver, setGameOver] = useState(false);
 
-	const isHost = lobbyData?.players.find(
-		(player) => player.socketId === socket?.id
-	)?.host;
+	const [currentRoll, setCurrentRoll] = useState<number | null>(null);
+	const [gameOver, setGameOver] = useState(false);
+	const [dialogMessage, setDialogMessage] = useState("");
+
+	const [animatedNumber, setAnimatedNumber] = useState(0);
+	const previousNumberRef = useRef(0);
+	const [isAnimating, setIsAnimating] = useState(false);
+
+	/* =========================
+	   CURRENT PLAYER (FIXED)
+	========================= */
+
+	const currentPlayer = game?.turnOrder
+		? lobbyData?.players.find(
+				(p) => p.playerId === game.currentPlayerId
+		  )
+		: null;
+
+	const isMyTurn = game?.currentPlayerId === playerId;
+
+	const isHost = lobbyData?.players.find((p) => p.playerId === playerId)?.host;
+
+	const displayNumber = currentRoll === null ? (game?.startingNumber ?? 0) : animatedNumber;
+
+	/* =========================
+	   SOCKET EVENTS
+	========================= */
 
 	useEffect(() => {
-		if (socket) {
-			const handleGameStarted = ({
-				startingNumber,
-				}: {
-				startingNumber: number;
-			}) => {
-				console.log(`Game started with starting number: ${startingNumber}`);
-			};
+		if (!socket) return;
 
-			const handleTurnChanged = ({
-				currentTurn,
-				randomNum,
-			}: {
-				currentTurn: number;
-				randomNum: number;
-				socketId: string;
-			}) => {
-				console.log(
-					`Turn changed: currentTurn = ${currentTurn}, randomNum = ${randomNum}`
-				);
-				setCurrentRoll(randomNum);
-			};
+		const handleTurnChanged = ({
+			currentPlayerId,
+			randomNum,
+		}: {
+			currentPlayerId: string;
+			randomNum: number;
+		}) => {
+			setCurrentRoll(randomNum);
+		};
 
-			const handlePlayerReachedOne = ({
-				playerName,
-				loserSocketId,
-			}: {
-				playerName: string;
-				loserSocketId: string;
-			}) => {
-				setCurrentRoll(1);
-				setTimeout(() => {
-					if (loserSocketId === socket.id) {
-						setDialogMessage("You");
-					} else {
-						setDialogMessage(`${playerName}`);
-					}
-					setIsDialogOpen(true);
-					setGameOver(true);
-				}, 2000);
-			};
+		const handleGameOver = ({
+			loser,
+		}: {
+			loser: string;
+		}) => {
+			setCurrentRoll(1);
 
-			const handleCurrentRoll = ({ randomNum }: { randomNum: number }) => {
-				console.log(`Current roll: ${randomNum}`);
-				setCurrentRoll(randomNum);
-			};
+			setTimeout(() => {
+				setDialogMessage(loser);
+				setGameOver(true);
+			}, 1500);
+		};
 
-			socket.on("gameStarted", handleGameStarted);
-			socket.on("turnChanged", handleTurnChanged);
-			socket.on("playerReachedOne", handlePlayerReachedOne);
-			socket.on("currentRoll", handleCurrentRoll);
+		socket.on("turnChanged", handleTurnChanged);
+		socket.on("gameOver", handleGameOver);
 
-			return () => {
-				socket.off("gameStarted", handleGameStarted);
-				socket.off("turnChanged", handleTurnChanged);
-				socket.off("playerReachedOne", handlePlayerReachedOne);
-				socket.off("currentRoll", handleCurrentRoll);
-			};
-		}
+		return () => {
+			socket.off("turnChanged", handleTurnChanged);
+			socket.off("gameOver", handleGameOver);
+		};
 	}, [socket]);
 
 	useEffect(() => {
-		if (currentRoll !== null) {
-			setIsAnimating(true);
-			const start = previousNumberRef.current;
-			const end = currentRoll;
-			const duration = 500;
-			const range = Math.abs(end - start);
-			const increment = end > start ? 1 : -1;
-			const stepTime = Math.floor(duration / range);
-
-			let current = start;
-			const timer = setInterval(() => {
-				current += increment * Math.max(1, Math.floor(range / 100));
-				if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-					current = end;
-				}
-				setAnimatedNumber(current);
-				if (current === end) {
-					clearInterval(timer);
-					previousNumberRef.current = end;
-					setIsAnimating(false);
-				}
-			}, stepTime);
-
-			return () => clearInterval(timer);
+		if (game?.startingNumber) {
+			previousNumberRef.current = game.startingNumber;
 		}
+	}, [game?.startingNumber]);
+
+	/* =========================
+	   ANIMATION
+	========================= */
+
+	useEffect(() => {
+		if (currentRoll === null) return;
+
+		setIsAnimating(true);
+
+		const start = previousNumberRef.current;
+		const end = currentRoll;
+
+		let current = start;
+
+		const step = end > start ? 1 : -1;
+
+		const interval = setInterval(() => {
+			current += step;
+
+			setAnimatedNumber(current);
+
+			if (current === end) {
+				clearInterval(interval);
+				previousNumberRef.current = end;
+				setIsAnimating(false);
+			}
+		}, 20);
+
+		return () => clearInterval(interval);
 	}, [currentRoll]);
 
+	/* =========================
+	   ACTIONS
+	========================= */
+
 	const handleStopGame = () => {
-		console.log("Stop game button clicked");
 		stopGame();
 	};
 
-	const formatNumber = (num: number): string => {
-		return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-	};
+	const formatNumber = (num: number) =>
+		num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+	/* =========================
+	   UI
+	========================= */
+
+	if (gameOver) {
+		return (
+			<div className="flex flex-col items-center justify-center mt-32 gap-6">
+				<p className="text-5xl font-bold">{loserName || dialogMessage} lost !</p>
+				<GameOverReturn
+					returnToLobby={returnToLobby}
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<main className="px-6 my-16">
-			{gameOver ? (
-				<div className="flex flex-col items-center justify-center mt-32">
-					<p className="text-5xl font-bold">
-						{dialogMessage} lost !
-					</p>
+			<div className="flex flex-col items-center gap-4 w-full max-w-96 m-auto">
+
+				{/* TURN */}
+				<div className="text-2xl font-bold text-center">
+					{isMyTurn ? (
+						<p>It&apos;s your turn !</p>
+					) : (
+						<p>
+							{currentPlayer?.nickname}&apos;s turn
+						</p>
+					)}
 				</div>
-			) : (
-				<div className="flex flex-col items-center gap-4 w-full m-auto max-w-96">
-					<div className="rounded px-6 py-4 w-full flex items-center justify-center">
-						<div className="text-2xl font-bold w-full">
-							{isMyTurn
-								? (<p className="flex justify-center items-center">It&apos;s your turn !</p>)
-								: (
-									<p className="flex justify-center items-center">
-										<span className="truncate max-w-[70%]">{currentPlayer?.nickname}</span>
-										<span className="whitespace-nowrap">&apos;s turn</span>
-									</p>
-								)}
-						</div>
-					</div>
-					<div className="flex flex-col items-center justify-center w-full h-96">
-						<div>
-							<p className="text-7xl text-white">
-								1 - <span className="text-secondary">{formatNumber(animatedNumber)}</span>
-							</p>
-						</div>
-					</div>
-					<button
-						onClick={handlePlayerAction}
-						className="btn btn-lg"
-						disabled={!isMyTurn || isAnimating || gameOver}
-					>
-          <Dices />
-						<span
-							className="text-2xl"
-						>
-							Roll !
-						</span>
-					</button>
+
+				{/* NUMBER */}
+				<div className="text-7xl">
+					1 -{" "}
+					<span className="text-secondary">
+						{formatNumber(displayNumber)}
+					</span>
 				</div>
-			)}
-			{isHost && (
-					<button
-						onClick={handleStopGame}
-						className="btn"
-					>
+
+				{/* ACTION */}
+				<button
+					onClick={handlePlayerAction}
+					className="btn btn-lg"
+					disabled={!isMyTurn || isAnimating || gameOver}
+				>
+					<Dices />
+					Roll !
+				</button>
+
+				{/* STOP */}
+				{isHost && (
+					<button onClick={handleStopGame} className="btn">
 						Retour au lobby
 					</button>
 				)}
+			</div>
 		</main>
 	);
 };
+
+function GameOverReturn({ returnToLobby }: { returnToLobby: () => void }) {
+	const [countdown, setCountdown] = useState(10);
+	const returnToLobbyRef = useRef(returnToLobby);
+	returnToLobbyRef.current = returnToLobby;
+
+	useEffect(() => {
+		if (countdown <= 0) {
+			returnToLobbyRef.current();
+			return;
+		}
+		const timer = setTimeout(() => setCountdown((prev) => prev - 1), 1000);
+		return () => clearTimeout(timer);
+	}, [countdown]);
+
+	return (
+		<div className="flex flex-col items-center gap-4">
+			<p className="text-lg">Return to lobby in {countdown}s</p>
+			<button onClick={() => returnToLobbyRef.current()} className="btn btn-secondary">
+				Return to lobby
+			</button>
+		</div>
+	);
+}
 
 export default GameUi;

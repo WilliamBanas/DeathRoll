@@ -1,11 +1,12 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
-import { useRouter, useParams, usePathname } from "next/navigation";
-import Link from "next/link";
-import { useSocket } from "../../../contexts/socket";
-import GameUi from "../../../components/GameUi";
-import { Copy, Crown, LogOut } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useSocket } from "@/contexts/socket";
+import GameUi from "@/components/GameUi";
+import { Copy, LogOut } from "lucide-react";
 import Image from "next/image";
+
 import avatar1 from "../../assets/img/avatar1.png";
 import avatar2 from "../../assets/img/avatar2.png";
 import avatar3 from "../../assets/img/avatar3.png";
@@ -15,373 +16,443 @@ import avatar6 from "../../assets/img/avatar6.png";
 import avatar7 from "../../assets/img/avatar7.png";
 import avatar8 from "../../assets/img/avatar8.png";
 
-interface Player {
-	host: boolean;
-	nickname: string;
-	lobbyId: string | null;
-	socketId: string;
-	turn: boolean;
-	loser: boolean;
-	avatar: number;
-}
+import type { Lobby, Player, Game } from "../../../types/games";
 
-interface Lobby {
-	lobbyId: string;
-	host: string;
-	players: Player[];
-}
-
-interface Game {
-	currentTurn: number;
-	isActive: boolean;
-	playerNumbers: { [socketId: string]: number };
-	isFirstTurn: boolean;
-	startingNumber: number;
-}
-
-const Lobby: React.FC = () => {
+export default function LobbyPage() {
 	const router = useRouter();
-	const params = useParams();
-	const lobbyId = params.lobbyId as string;
-	const socket = useSocket();
-	const [lobbyData, setLobbyData] = useState<Lobby | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [games, setGames] = useState<{ [lobbyId: string]: Game }>({});
-	const [startingNumber, setStartingNumber] = useState<number>(100);
-	const [dots, setDots] = useState("");
-	const [gameStartingNumber, setGameStartingNumber] = useState<number | null>(
-		null
-	);
-	const pathname = usePathname();
+	const { lobbyId } = useParams<{ lobbyId: string }>();
 
-	const copyLobbyLink = () => {
-		if (lobbyId) {
-			const link = `${window.location.origin}/?lobbyId=${lobbyId}`;
-			navigator.clipboard.writeText(link);
-		}
-	};
+	const { socket, playerId } = useSocket(); // ✅ FIX IMPORTANT
+
+	const [lobbyData, setLobbyData] = useState<Lobby | null>(null);
+	const [games, setGames] = useState<Record<string, Game>>({});
+	const [startingNumber, setStartingNumber] = useState(100);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [returnedToLobby, setReturnedToLobby] = useState(false);
+	const [loserName, setLoserName] = useState<string | null>(null);
+
+	const isHost = lobbyData?.players.find((p) => p.playerId === playerId)?.host ?? false;
+
+	const [dotCount, setDotCount] = useState(0);
+
+	useEffect(() => {
+		if (isHost) return;
+		const interval = setInterval(() => {
+			setDotCount((prev) => (prev + 1) % 4);
+		}, 500);
+		return () => clearInterval(interval);
+	}, [isHost]);
 
 	const avatars = [
-		avatar1,
-		avatar2,
-		avatar3,
-		avatar4,
-		avatar5,
-		avatar6,
-		avatar7,
-		avatar8,
+		avatar1, avatar2, avatar3, avatar4,
+		avatar5, avatar6, avatar7, avatar8,
 	];
 
+	/* SOCKET */
 	useEffect(() => {
-		const interval = setInterval(() => {
-			setDots((prevDots) => {
-				if (prevDots.length >= 3) return "";
-				return prevDots + ".";
-			});
-		}, 500);
+		if (!socket || !lobbyId) return;
 
-		return () => clearInterval(interval);
-	}, []);
+		const onConnect = () => {
+			socket.emit("reconnectLobby", { lobbyId, playerId });
+		};
 
-	useEffect(() => {
-		if (socket && lobbyId) {
-			socket.emit("getLobbyData", lobbyId);
+		socket.emit("getLobbyData", lobbyId);
+		socket.emit("reconnectLobby", { lobbyId, playerId });
+		socket.on("connect", onConnect);
 
-			socket.on("lobbyData", (data: Lobby) => {
-				setLobbyData(data);
-				setLoading(false);
-			});
-
-			socket.on("lobbyError", (message: string) => {
-				setError(message);
-				setLoading(false);
-			});
-
-			const handlePlayerJoined = (newPlayer: Player) => {
-				setLobbyData((prevLobby) => {
-					if (prevLobby) {
-						const existingPlayer = prevLobby.players.find(
-							(player) => player.socketId === newPlayer.socketId
-						);
-						if (!existingPlayer) {
-							return {
-								...prevLobby,
-								players: [...prevLobby.players, newPlayer],
-							};
-						}
-						return prevLobby;
-					}
-					return prevLobby;
-				});
-			};
-
-			const handlePlayerLeft = (socketId: string) => {
-				setLobbyData((prevLobby) => {
-					if (prevLobby) {
-						const updatedPlayers = prevLobby.players.filter(
-							(player) => player.socketId !== socketId
-						);
-
-						if (
-							prevLobby.players.some(
-								(player) => player.socketId === socketId && player.host
-							)
-						) {
-							const newHost = updatedPlayers[0];
-							if (newHost) {
-								newHost.host = true;
-							}
-						}
-
-						return {
-							...prevLobby,
-							players: updatedPlayers,
-							host: updatedPlayers[0]?.nickname || "",
-						};
-					}
-					return prevLobby;
-				});
-			};
-
-			socket.on("playerJoined", handlePlayerJoined);
-			socket.on("playerLeft", handlePlayerLeft);
-
-			socket.on("gameStarted", ({ currentTurn, startingNumber }) => {
-				console.log(
-					`Game started! Current turn: ${currentTurn}, Starting number: ${startingNumber}`
-				);
-				setGames((prevGames) => ({
-					...prevGames,
-					[lobbyId]: {
-						currentTurn,
-						isActive: true,
-						isFirstTurn: true,
-						playerNumbers: {},
-						startingNumber,
-					} as Game,
+		const onLobbyData = (data: any) => {
+			setLobbyData(data);
+			if (data.game?.status !== "WAITING") {
+				setGames((prev) => ({
+					...prev,
+					[lobbyId]: data.game,
 				}));
-				setGameStartingNumber(startingNumber);
-			});
+			}
+			if (data.game?.status !== "FINISHED") {
+				setReturnedToLobby(false);
+				setLoserName(null);
+			}
+			setLoading(false);
+		};
 
-			socket.on("turnChanged", ({ currentTurn }) => {
-				setGames((prevGames) => ({
-					...prevGames,
-					[lobbyId]: {
-						...prevGames[lobbyId],
-						currentTurn,
-					},
-				}));
-			});
+		const onLobbyError = () => {
+			setLoading(false);
+			localStorage.removeItem("lastLobbyId");
+			router.push("/");
+		};
 
-			socket.on("gameOver", () => {
-				setGames((prevGames) => ({
-					...prevGames,
-					[lobbyId]: {
-						...prevGames[lobbyId],
-						isActive: false,
-					},
-				}));
+		const onPlayerJoined = (player: any) => {
+			setLobbyData((prev) => {
+				if (!prev) return { lobbyId, players: [player] };
+				const exists = prev.players.find((p) => p.playerId === player.playerId);
+				if (exists) return prev;
+				return { ...prev, players: [...prev.players, player] };
 			});
-		}
+		};
+
+		const onPlayerDisconnected = ({ playerId: id }: { playerId: string }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) =>
+						p.playerId === id ? { ...p, connected: false } : p
+					),
+				};
+			});
+		};
+
+		const onPlayerReconnected = ({ playerId: id }: { playerId: string }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) =>
+						p.playerId === id ? { ...p, connected: true } : p
+					),
+				};
+			});
+		};
+
+		const onGameStarted = ({ currentPlayerId, startingNumber }: any) => {
+			setReturnedToLobby(false);
+			setLoserName(null);
+			setGames((prev) => ({
+				...prev,
+				[lobbyId]: {
+					status: "PLAYING",
+					currentPlayerId,
+					startingNumber,
+					isFirstTurn: true,
+					playerNumbers: {},
+					turnOrder: [],
+				},
+			}));
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) => ({
+						...p,
+						ready: false,
+						returnedToLobby: false,
+					})),
+				};
+			});
+		};
+
+		const onTurnChanged = ({ currentPlayerId }: any) => {
+			setGames((prev) => ({
+				...prev,
+				[lobbyId]: {
+					...prev[lobbyId],
+					currentPlayerId,
+				},
+			}));
+		};
+
+		const onGameOver = ({ loser }: { loser: string }) => {
+			setLoserName(loser);
+			setReturnedToLobby(false);
+			setGames((prev) => ({
+				...prev,
+				[lobbyId]: {
+					...prev[lobbyId],
+					status: "FINISHED",
+				},
+			}));
+		};
+
+		const onPlayerLeft = ({ playerId: id }: { playerId: string }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.filter((p) => p.playerId !== id),
+				};
+			});
+		};
+
+		const onNewHost = ({ playerId: id }: { playerId: string }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) => ({
+						...p,
+						host: p.playerId === id,
+					})),
+				};
+			});
+		};
+
+		const onPlayerReady = ({ playerId: id, ready }: { playerId: string; ready: boolean }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) =>
+						p.playerId === id ? { ...p, ready } : p
+					),
+				};
+			});
+		};
+
+		const onPlayerReturned = ({ playerId: id }: { playerId: string }) => {
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) =>
+						p.playerId === id ? { ...p, returnedToLobby: true } : p
+					),
+				};
+			});
+		};
+
+		const onGameReset = () => {
+			setReturnedToLobby(false);
+			setLoserName(null);
+			setGames((prev) => ({
+				...prev,
+				[lobbyId]: {
+					status: "WAITING",
+					turnOrder: [],
+					currentPlayerId: null,
+					startingNumber: null,
+					isFirstTurn: true,
+					playerNumbers: {},
+				},
+			}));
+			setLobbyData((prev) => {
+				if (!prev) return prev;
+				return {
+					...prev,
+					players: prev.players.map((p) => ({
+						...p,
+						ready: false,
+						returnedToLobby: false,
+					})),
+				};
+			});
+		};
+
+		const onLobbyClosed = () => {
+			localStorage.removeItem("lastLobbyId");
+			router.push("/");
+		};
+
+		socket.on("lobbyData", onLobbyData);
+		socket.on("lobbyError", onLobbyError);
+		socket.on("playerJoined", onPlayerJoined);
+		socket.on("playerDisconnected", onPlayerDisconnected);
+		socket.on("playerReconnected", onPlayerReconnected);
+		socket.on("playerLeft", onPlayerLeft);
+		socket.on("newHost", onNewHost);
+		socket.on("playerReady", onPlayerReady);
+		socket.on("playerReturned", onPlayerReturned);
+		socket.on("gameStarted", onGameStarted);
+		socket.on("turnChanged", onTurnChanged);
+		socket.on("gameOver", onGameOver);
+		socket.on("gameReset", onGameReset);
+		socket.on("lobbyClosed", onLobbyClosed);
 
 		return () => {
-			if (socket) {
-				socket.off("lobbyData");
-				socket.off("lobbyError");
-				socket.off("playerJoined");
-				socket.off("playerLeft");
-				socket.off("gameStarted");
-				socket.off("turnChanged");
-				socket.off("gameOver");
-			}
+			socket.off("connect", onConnect);
+			socket.off("lobbyData", onLobbyData);
+			socket.off("lobbyError", onLobbyError);
+			socket.off("playerJoined", onPlayerJoined);
+			socket.off("playerDisconnected", onPlayerDisconnected);
+			socket.off("playerReconnected", onPlayerReconnected);
+			socket.off("playerLeft", onPlayerLeft);
+			socket.off("newHost", onNewHost);
+			socket.off("playerReady", onPlayerReady);
+			socket.off("playerReturned", onPlayerReturned);
+			socket.off("gameStarted", onGameStarted);
+			socket.off("turnChanged", onTurnChanged);
+			socket.off("gameOver", onGameOver);
+			socket.off("gameReset", onGameReset);
+			socket.off("lobbyClosed", onLobbyClosed);
 		};
-	}, [socket, lobbyId, lobbyData?.players]);
+	}, [socket, lobbyId]);
 
-	const leaveLobby = () => {
-		if (socket) {
-			socket.emit("leaveLobby", lobbyId);
-			router.push("/");
-		}
+	/* ACTIONS */
+	const handlePlayerAction = () => {
+		socket?.emit("playerAction", {
+			lobbyId,
+			playerId,
+		});
 	};
 
 	const startGame = () => {
-		if (socket && lobbyId) {
-			socket.emit("startGame", { lobbyId, startingNumber });
-		}
+		socket?.emit("startGame", { lobbyId, startingNumber });
 	};
 
-	const handlePlayerAction = () => {
-		if (socket) {
-			socket.emit("playerAction", lobbyId);
-		}
+	const toggleReady = () => {
+		socket?.emit("toggleReady", lobbyId);
+		setLobbyData((prev) => {
+			if (!prev) return prev;
+			return {
+				...prev,
+				players: prev.players.map((p) =>
+					p.playerId === playerId
+						? { ...p, ready: !p.ready }
+						: p
+				),
+			};
+		});
 	};
 
-	const isCurrentPlayerHost = () => {
-		const currentPlayer = lobbyData?.players.find(
-			(player) => player.socketId === socket?.id
+	const handleReturnToLobby = () => {
+		socket?.emit("returnToLobby", lobbyId);
+		setReturnedToLobby(true);
+	};
+
+	const leaveLobby = () => {
+		socket?.emit("leaveLobby", lobbyId);
+		localStorage.removeItem("lastLobbyId");
+		router.push("/");
+	};
+
+	const copyLobbyLink = () => {
+		navigator.clipboard.writeText(
+			`${window.location.origin}/?lobbyId=${lobbyId}`
 		);
-		return currentPlayer?.host;
 	};
 
-	const canStartGame = lobbyData && lobbyData.players.length > 1;
+	/* UI */
+	if (loading) return <div>Loading...</div>;
+	if (error) return <div className="text-red-500">{error}</div>;
 
-	const stopGame = () => {
-		if (socket && lobbyId) {
-			console.log("Emitting stopGame event");
-			socket.emit("stopGame", lobbyId);
-		}
-	};
+	const isPlaying = games[lobbyId]?.status === "PLAYING";
+	const isGameOver = games[lobbyId]?.status === "FINISHED" && !returnedToLobby;
 
-	if (loading) return <div>Loading room data...</div>;
-	if (error)
+	if (isPlaying || isGameOver) {
 		return (
-			<div className="flex flex-col items-center">
-				<div className="text-red-500 mb-4">{error}</div>
-				<Link href="/">
-					<button>Return to Home</button>
-				</Link>
-			</div>
+			<GameUi
+				lobbyData={lobbyData}
+				handlePlayerAction={handlePlayerAction}
+				lobbyId={lobbyId}
+				socket={socket}
+				games={games}
+				stopGame={() => socket?.emit("stopGame", lobbyId)}
+				startingNumber={startingNumber}
+				playerId={playerId}
+				returnToLobby={handleReturnToLobby}
+				loserName={loserName}
+			/>
 		);
+	}
 
 	return (
-		<>
-			{lobbyId && games[lobbyId]?.isActive ? (
-				<GameUi
-					lobbyData={lobbyData}
-					handlePlayerAction={handlePlayerAction}
-					lobbyId={lobbyId}
-					socket={socket}
-					games={games}
-					stopGame={stopGame}
-					startingNumber={gameStartingNumber || startingNumber}
-				/>
-			) : (
-				<main className="px-6 my-16">
-					<div className="flex flex-col items-center gap-4 w-full m-auto">
-						<div className="mb-24 flex flex-col gap-4 lg:flex-row">
-							<div className="min-w-80 max-w-80 flex flex-col gap-4 w-full">
-								<div className="bg-base-200 rounded-md px-6 py-4 w-full h-fit flex items-center justify-between gap-4">
-									<p className="text-2xl">{lobbyId}</p>
-									<button
-										className="btn bg-base-200 border-none w-fit"
-										onClick={copyLobbyLink}
-									>
-										<Copy className="w-5" />
-									</button>
-								</div>
-								<div className="flex flex-col gap-2">
-									<div className="flex justify-between items-center w-full p-2">
-										<h2 className="text-2xl">Players</h2>
-										<span className="text-lg font-semibold bg-base-200 px-3 py-1 rounded-md">
-											{lobbyData?.players.length || 0}/10
-										</span>
-									</div>
-									<div className="overflow-x-auto w-full">
-										<ul className="h-64 lg:h-fit grid grid-cols-3 gap-2">
-											{Array.from({ length: 10 }).map((_, index) => {
-												const player = lobbyData?.players[index];
-												return (
-													<li
-														className="flex items-center aspect-square"
-														key={index}
-													>
-														<div className="bg-base-200 rounded-md w-full h-full flex items-center justify-center p-2 overflow-hidden">
-															{player ? (
-																<div className="w-full flex flex-col items-center">
-																	<Image
-																		src={avatars[player.avatar - 1]}
-																		alt={`Avatar ${player.avatar}`}
-																		width={50}
-																		className="rounded-full"
-																	/>
-																	<div className="w-full flex items-center justify-center gap-2">
-																		{player.host && (
-																			<Crown
-																				className={`w-3 flex-shrink-0 ${"fill-[#FFD700] stroke-[#FFD700]"}`}
-																				fill="currentColor"
-																				stroke="currentColor"
-																			/>
-																		)}
-																		<p
-																			className={`text-md font-bold truncate ${
-																				player.socketId === socket?.id
-																					? "text-primary"
-																					: ""
-																			}`}
-																		>
-																			{player.nickname}
-																		</p>
-																	</div>
-																</div>
-															) : null}
-														</div>
-													</li>
-												);
-											})}
-										</ul>
-									</div>
-								</div>
-							</div>
+		<main className="px-6 my-16">
+			<div className="flex flex-col items-center gap-4">
 
-							<div className="bg-base-200 rounded-md p-6 min-w-80 max-w-80 h-fit flex flex-col gap-4">
-								{lobbyId && !games[lobbyId]?.isActive && (
-									<>
-										{isCurrentPlayerHost() ? (
-											<>
-												<h3 className="text-2xl mb-8">Game settings :</h3>
-												<div className="flex items-center justify-between gap-4 mb-12">
-													<label className="text-md w-fit">
-														Default value :
-													</label>
-													<select
-														className="select select-bordered select-sm"
-														value={startingNumber.toString()}
-														onChange={(e) =>
-															setStartingNumber(Number(e.target.value))
-														}
-													>
-														{Array.from(
-															{ length: 100 },
-															(_, i) => (i + 1) * 100
-														).map((value) => (
-															<option key={value} value={value.toString()}>
-																{value}
-															</option>
-														))}
-													</select>
-												</div>
-												<div>
-													<button
-														className="btn btn-secondary w-full"
-														onClick={startGame}
-														disabled={!canStartGame}
-													>
-														Start Game
-													</button>
-												</div>
-											</>
-										) : (
-											<div className="text-gray-500 text-md">
-												Waiting for the host to start game{dots}
+				<div className="flex gap-4">
+
+					{/* LEFT */}
+					<div className="w-80">
+						<div className="flex justify-between bg-base-200 p-3 rounded">
+							<p>{lobbyId}</p>
+							<button onClick={copyLobbyLink}>
+								<Copy />
+							</button>
+						</div>
+
+						<ul className="grid grid-cols-3 gap-2 mt-4">
+							{Array.from({ length: 10 }).map((_, i) => {
+								const player = lobbyData?.players[i];
+
+								return (
+									<li key={i} className={`bg-base-300 aspect-square rounded relative ${!player?.connected ? "opacity-40" : ""}`}>
+										{player && (
+											<div className="flex flex-col items-center justify-center size-full">
+												{player.host && (
+													<span className="badge badge-warning badge-xs absolute top-1">
+														Host
+													</span>
+												)}
+												{!player.connected && (
+													<span className="badge badge-neutral badge-xs absolute top-1 right-1">
+														Disconnected
+													</span>
+												)}
+												{games[lobbyId]?.status === "FINISHED" && !player.returnedToLobby && (
+													<span className="badge badge-accent badge-xs absolute top-1 right-1">
+														Ingame
+													</span>
+												)}
+												{games[lobbyId]?.status !== "FINISHED" && player.ready && (
+													<span className="badge badge-success badge-xs absolute top-1 right-1">
+														Ready
+													</span>
+												)}
+												<Image
+													src={avatars[player.avatar - 1]}
+													alt=""
+													width={40}
+													height={40}
+												/>
+												<p className="text-xs mt-1">{player.nickname}</p>
 											</div>
 										)}
-									</>
-								)}
-							</div>
-						</div>
-						<button
-							className="btn btn-outline flex gap-2 "
-							onClick={leaveLobby}
-						>
-							<LogOut className="w-4" />
-							<p>Leave</p>
-						</button>
+									</li>
+								);
+							})}
+						</ul>
 					</div>
-				</main>
-			)}
-		</>
-	);
-};
 
-export default Lobby;
+					{/* RIGHT */}
+					<div className="w-80 bg-base-200 p-4 rounded">
+						{isHost ? (
+							<>
+								<select
+									value={startingNumber}
+									onChange={(e) => setStartingNumber(Number(e.target.value))}
+									className="select select-bordered w-full"
+								>
+									{Array.from({ length: 10 }, (_, i) => (i + 1) * 100).map(
+										(v) => (
+											<option key={v} value={v}>
+												{v}
+											</option>
+										)
+									)}
+								</select>
+
+								<button
+									onClick={startGame}
+									className="btn btn-secondary w-full mt-4"
+									disabled={!lobbyData?.players.every((p) => !p.connected || p.ready)}
+								>
+									Start Game
+								</button>
+							</>
+						) : (
+							<p className="text-center text-lg py-8">
+								Waiting for host to start{".".repeat(dotCount)}
+							</p>
+						)}
+
+						<div className="mt-4 flex flex-col items-center gap-2">
+							<p className="text-sm">
+								Ready: {lobbyData?.players.filter((p) => p.connected && p.ready).length ?? 0}/
+								{lobbyData?.players.filter((p) => p.connected).length ?? 0}
+							</p>
+							<button onClick={toggleReady} className="btn btn-sm w-full">
+								{lobbyData?.players.find((p) => p.playerId === playerId)?.ready
+									? "Not Ready"
+									: "Ready"}
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<button className="btn mt-4" onClick={leaveLobby}>
+					<LogOut /> Leave
+				</button>
+			</div>
+		</main>
+	);
+}

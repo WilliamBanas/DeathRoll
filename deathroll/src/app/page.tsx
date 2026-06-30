@@ -1,138 +1,139 @@
 "use client";
-import React, { useEffect, useState, Suspense } from "react";
-import { useSocket } from "../contexts/socket";
+
+import React, { useEffect, useState } from "react";
+import { useSocket } from "@/contexts/socket";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import avatar1 from "./assets/img/avatar1.png";
-import avatar2 from "./assets/img/avatar2.png";
-import avatar3 from "./assets/img/avatar3.png";
-import avatar4 from "./assets/img/avatar4.png";
-import avatar5 from "./assets/img/avatar5.png";
-import avatar6 from "./assets/img/avatar6.png";
-import avatar7 from "./assets/img/avatar7.png"; 
-import avatar8 from "./assets/img/avatar8.png";
 
-const LobbyIdHandler: React.FC<{
-	setSharedLobbyId: (id: string | null) => void;
-}> = ({ setSharedLobbyId }) => {
-	const searchParams = useSearchParams();
-
-	useEffect(() => {
-		const sharedId = searchParams.get("lobbyId");
-		if (sharedId) {
-			setSharedLobbyId(sharedId);
-		}
-	}, [searchParams, setSharedLobbyId]);
-
-	return null;
-};
-
-const Home: React.FC = () => {
-	const socket = useSocket();
+export default function Home() {
+	const { socket, playerId, setPlayerId } = useSocket();
 	const router = useRouter();
+
 	const [nickname, setNickname] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [sharedLobbyId, setSharedLobbyId] = useState<string | null>(null);
-	const [selectedAvatar, setSelectedAvatar] = useState<number>(1);
-	const avatars = [
-		{ icon: avatar1, id: 1 },
-		{ icon: avatar2, id: 2 },
-		{ icon: avatar3, id: 3 },
-		{ icon: avatar4, id: 4 },
-		{ icon: avatar5, id: 5 },
-		{ icon: avatar6, id: 6 },
-		{ icon: avatar7, id: 7 },
-		{ icon: avatar8, id: 8 },
-	];
+	const [selectedAvatar, setSelectedAvatar] = useState(1);
 
 	useEffect(() => {
-		if (socket) {
-			console.log(`Socket initialized: ${socket.id}`);
-
-			socket.on("lobbyCreated", ({ lobbyId, player }) => {
-				console.log(`Lobby created with ID: ${lobbyId}`);
-				console.log(`Player data:`, player);
-				router.push(`/lobby/${lobbyId}`);
-			});
-
-			socket.on("lobbyJoined", ({ lobbyId, player }) => {
-				console.log(`Lobby joined with ID: ${lobbyId}`);
-				console.log(`Player data:`, player);
-				router.push(`/lobby/${lobbyId}`);
-			});
-
-			socket.on("lobbyError", (errorMessage: string) => {
-				setError(errorMessage);
-				setTimeout(() => setError(null), 5000);
-			});
-		} else {
-			console.error("Socket is not initialized");
+		const params = new URLSearchParams(window.location.search);
+		const lobbyIdParam = params.get("lobbyId");
+		if (lobbyIdParam) {
+			setSharedLobbyId(lobbyIdParam);
 		}
+	}, []);
+
+	useEffect(() => {
+		const savedLobbyId = localStorage.getItem("lastLobbyId");
+		if (!savedLobbyId || !socket) return;
+
+		const onLobbyData = () => {
+			router.push(`/lobby/${savedLobbyId}`);
+		};
+
+		const onLobbyError = () => {
+			localStorage.removeItem("lastLobbyId");
+		};
+
+		socket.emit("getLobbyData", savedLobbyId);
+		socket.on("lobbyData", onLobbyData);
+		socket.on("lobbyError", onLobbyError);
 
 		return () => {
-			if (socket) {
-				socket.off("lobbyCreated");
-				socket.off("lobbyJoined");
-				socket.off("lobbyError");
+			socket.off("lobbyData", onLobbyData);
+			socket.off("lobbyError", onLobbyError);
+		};
+	}, [socket, router]);
+
+	useEffect(() => {
+		if (!socket) return;
+
+		const onCreated = (data: any) => {
+			localStorage.setItem("lastLobbyId", data.lobbyId);
+			router.push(`/lobby/${data.lobbyId}`);
+		};
+
+		const onJoined = (data: any) => {
+			if (data.assignedPlayerId) {
+				setPlayerId(data.assignedPlayerId);
 			}
+			localStorage.setItem("lastLobbyId", data.lobbyId);
+			router.push(`/lobby/${data.lobbyId}`);
+		};
+
+		const onError = (msg: string) => {
+			setError(msg);
+			setTimeout(() => setError(null), 3000);
+		};
+
+		socket.on("lobbyCreated", onCreated);
+		socket.on("lobbyJoined", onJoined);
+		socket.on("lobbyError", onError);
+
+		return () => {
+			socket.off("lobbyCreated", onCreated);
+			socket.off("lobbyJoined", onJoined);
+			socket.off("lobbyError", onError);
 		};
 	}, [socket, router]);
 
 	const createLobby = () => {
-		if (nickname && socket) {
-			console.log(
-				"Emitting createLobby event with nickname and avatar:",
-				nickname,
-				selectedAvatar
-			);
-			socket.emit("createLobby", { nickname, avatar: selectedAvatar });
-		} else {
-			setError("Please enter a nickname before creating a lobby.");
-		}
+		if (!socket || !nickname) return;
+
+		socket.emit("createLobby", {
+			nickname,
+			avatar: selectedAvatar,
+			playerId,
+		});
 	};
 
 	const joinLobby = () => {
-		if (nickname && sharedLobbyId && socket) {
-			console.log(
-				"Emitting joinLobby event with nickname, roomId, and avatar:",
-				nickname,
-				sharedLobbyId,
-				selectedAvatar
-			);
-			socket.emit("joinLobby", {
-				nickname,
-				lobbyId: sharedLobbyId,
-				avatar: selectedAvatar,
-			});
-		} else {
-			setError("Please enter a nickname before joining.");
-		}
+		if (!socket || !nickname || !sharedLobbyId) return;
+
+		socket.emit("joinLobby", {
+			nickname,
+			lobbyId: sharedLobbyId,
+			avatar: selectedAvatar,
+			playerId,
+		});
 	};
 
+	const avatars = [
+		{ icon: "/assets/img/avatar1.png", id: 1 },
+		{ icon: "/assets/img/avatar2.png", id: 2 },
+		{ icon: "/assets/img/avatar3.png", id: 3 },
+		{ icon: "/assets/img/avatar4.png", id: 4 },
+		{ icon: "/assets/img/avatar5.png", id: 5 },
+		{ icon: "/assets/img/avatar6.png", id: 6 },
+		{ icon: "/assets/img/avatar7.png", id: 7 },
+		{ icon: "/assets/img/avatar8.png", id: 8 },
+	];
+
 	return (
-		<main className="px-6 mt-16 mb-24">
-			<Suspense fallback={<div>Loading...</div>}>
-				<LobbyIdHandler setSharedLobbyId={setSharedLobbyId} />
-			</Suspense>
-			<div className="flex flex-col items-center justify-center lg:items-start lg:flex-row gap-4 ">
-				<div className="max-w-80 w-80 bg-base-200 rounded-md p-6 w-full h-fit flex flex-col gap-3">
+		<main className="px-6 mt-16 m-auto mb-24">
+			<div className="flex flex-col items-center lg:flex-row gap-4">
+
+				<div className="max-w-80 w-80 bg-base-200 rounded-md p-6 flex flex-col gap-3">
+
+					{/* AVATARS */}
 					<div className="carousel w-full">
 						{avatars.map((avatar) => (
 							<div
 								key={avatar.id}
 								id={`avatar${avatar.id}`}
-								className="carousel-item w-full flex justify-center items-center"
+								className="carousel-item w-full flex justify-center"
 							>
 								<Image
 									src={avatar.icon}
 									alt={`Avatar ${avatar.id}`}
-									className="w-56"
+									width={224}
+									height={224}
 								/>
 							</div>
 						))}
 					</div>
-					<div className="flex justify-center w-full py-2 gap-2">
+
+					{/* SELECT AVATAR */}
+					<div className="flex justify-center gap-2">
 						{avatars.map((avatar) => (
 							<a
 								key={avatar.id}
@@ -146,7 +147,11 @@ const Home: React.FC = () => {
 							</a>
 						))}
 					</div>
+
+					{/* ERROR */}
 					{error && <p className="text-red-500">{error}</p>}
+
+					{/* NICKNAME */}
 					<input
 						type="text"
 						placeholder="Enter Nickname"
@@ -154,9 +159,11 @@ const Home: React.FC = () => {
 						onChange={(e) => setNickname(e.target.value)}
 						className="input input-bordered text-sm"
 					/>
+
+					{/* BUTTON */}
 					{!sharedLobbyId ? (
 						<button
-							disabled={nickname === ""}
+							disabled={!nickname}
 							className="btn btn-secondary"
 							onClick={createLobby}
 						>
@@ -164,7 +171,7 @@ const Home: React.FC = () => {
 						</button>
 					) : (
 						<button
-							disabled={nickname === ""}
+							disabled={!nickname}
 							className="btn btn-secondary"
 							onClick={joinLobby}
 						>
@@ -172,44 +179,20 @@ const Home: React.FC = () => {
 						</button>
 					)}
 				</div>
-				<div className="max-w-80 w-80 flex flex-col gap-3 h-fit">
-					<div className="bg-base-200 collapse collapse-arrow rounded-md">
-						<input type="checkbox" />
-						<div className=" collapse-title">What are the rules ?</div>
-						<div className="collapse-content flex flex-col gap-6">
-							<div>
-								<p>
-									Each player rolls a random number between two values. The
-									first player to play has to roll a number between 1 and a
-									value set by the game host. The next player has to roll a
-									number between 1 and the number the previous player rolled,
-									and so on... The first player to hit 1 loses.
-								</p>
-							</div>
-							<div className="flex flex-col gap-2 text-sm">
-								<p>Example:</p>
-								<p>Default value is 100.</p>
-								<p>Player1 rolls between 1 and 100 and obtains 42.</p>
-								<p>Player2 rolls between 1 and 42 and obtains 33.</p>
-								<p>Player3 rolls between 1 and 33 and obtains 12</p>
-								<p>Player4 rolls between 1 and 12 and obtains 8.</p>
-								<p>Player5 rolls between 1 and 8 and obtains 1.</p>
-								<p>Player5 loses.</p>
-							</div>
-						</div>
-					</div>
 
+				{/* RULES */}
+				<div className="max-w-80 w-80 flex flex-col gap-3">
 					<div className="bg-base-200 collapse collapse-arrow rounded-md">
 						<input type="checkbox" />
-						<div className="collapse-title">Report a bug</div>
-						<div className="collapse-content">
-							<p>hello world</p>
+						<div className="collapse-title">What are the rules?</div>
+						<div className="collapse-content text-sm">
+							Each player rolls a number between 1 and the previous value.
+							The first to reach 1 loses.
 						</div>
 					</div>
 				</div>
+
 			</div>
 		</main>
 	);
-};
-
-export default Home;
+}
