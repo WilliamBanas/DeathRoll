@@ -1,32 +1,67 @@
 "use client";
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-const API_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
+const API_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
 
-const SocketContext = createContext<Socket | null>(null);
-
-export const useSocket = () => {
-  return useContext(SocketContext);
+type SocketContextType = {
+	socket: Socket | null;
+	playerId: string;
+	setPlayerId: (id: string) => void;
 };
 
-export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+const SocketContext = createContext<SocketContextType | null>(null);
 
-  useEffect(() => {
-    const newSocketInstance = io(API_URL, {
-      withCredentials: true,
-    });
-     
-    setSocket(newSocketInstance);
-    newSocketInstance.on("connect", () => {
-      console.log(`Socket connected: ${newSocketInstance.id}`);
-    });
+export const useSocket = () => {
+	const ctx = useContext(SocketContext);
+	if (!ctx) throw new Error("SocketProvider missing");
+	return ctx;
+};
 
-    newSocketInstance.on("disconnect", () => {
-      console.log(`Socket disconnected: ${newSocketInstance.id}`);
-    });
-  }, []);
+const getOrCreatePlayerId = () => {
+	if (typeof window === "undefined") return "";
 
-  return <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>;
+	let id = localStorage.getItem("playerId");
+
+	if (!id) {
+		id = crypto.randomUUID();
+		localStorage.setItem("playerId", id);
+	}
+
+	return id;
+};
+
+export const SocketProvider = ({
+	children,
+}: {
+	children: React.ReactNode;
+}) => {
+	const [socket, setSocket] = useState<Socket | null>(null);
+	const [playerId, setPlayerIdState] = useState(getOrCreatePlayerId);
+
+	const setPlayerId = (id: string) => {
+		localStorage.setItem("playerId", id);
+		setPlayerIdState(id);
+	};
+
+	useEffect(() => {
+		const s = io(API_URL, {
+			transports: ["websocket"],
+			withCredentials: true,
+		});
+
+		setSocket(s);
+
+		return () => {
+			s.disconnect();
+		};
+	}, []);
+
+	return (
+		<SocketContext.Provider value={{ socket, playerId, setPlayerId }}>
+			{children}
+		</SocketContext.Provider>
+	);
 };
